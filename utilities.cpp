@@ -24,7 +24,7 @@ Piece char_to_piece(char c) {
 Color color_of(char c) {
     if (c >= 'A' && c <= 'Z') {
         return WHITE;
-    } else if (c >= 'a' && c <= 'z') {
+    } else {
         return BLACK;
     }
 }
