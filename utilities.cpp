@@ -1,4 +1,5 @@
 #include "utilities.h"
+#include <string>
 
 using namespace std;
 
@@ -27,4 +28,12 @@ Color color_of(char c) {
     } else {
         return BLACK;
     }
+}
+
+Square string_to_square(string str) {
+    return square_of(str[1] - '1', str[0] - 'a');
+}
+
+Square square_of(int rank, int file) {
+    return Square(rank * 8 + file);
 }

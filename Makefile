@@ -1,2 +1,2 @@
 all:
-	g++ main.cpp pos.cpp
+	g++ main.cpp pos.cpp utilities.cpp castling.cpp
