@@ -5,7 +5,9 @@
 
 
 int main() {
-    Pos pos("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq g7 0 1");
+    Pos pos("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+
+    pos.print_board();
     
     return 0;
 }

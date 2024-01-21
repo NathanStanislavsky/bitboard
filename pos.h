@@ -21,4 +21,10 @@ class Pos {
         void add_piece(Color color, Piece piece, Square square);
 
         void remove_piece(Color color, Piece piece, Square square);
+
+        void print_board();
+
+        Color color_on(Square square);
+
+        Piece piece_on(Square square);
 };

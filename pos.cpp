@@ -66,3 +66,39 @@ void Pos::remove_piece(Color color, Piece piece, Square square) {
     colors_bbs[color] &= 1ULL << square;
     pieces_bbs[piece] &= 1ULL << square;
 }
+
+void Pos::print_board() {
+    for (int r = 0; r < 8; r++) {
+        for (int c = 0; c < 8; c++) {
+            Square square = square_of(r, c);
+            Color color = color_on(square);
+            Piece piece = piece_on(square);
+
+            cout << piece_to_char_color(piece, color);
+            
+            cout << " ";
+        }
+        cout << "\n";
+    }
+    cout << "\n";
+}
+
+Color Pos::color_on(Square square) {
+    for (int i = 0; i < 2; i++) {
+
+        if (bb_has(colors_bbs[i], square)) {
+            return Color(i);
+        }
+    }
+    return NO_COLOR;
+}
+
+Piece Pos::piece_on(Square square) {
+    for (int i = 0; i < 6; i++) {
+        
+        if (bb_has(pieces_bbs[i], square)) {
+            return Piece(i);
+        }
+    }
+    return EMPTY;
+}
