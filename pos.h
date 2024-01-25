@@ -3,6 +3,8 @@
 #include <string>
 #include "utilities.h"
 #include "castling.h"
+#include <vector>
+#include "move.h"
 
 using namespace std;
 
@@ -27,4 +29,15 @@ class Pos {
         Color color_on(Square square);
 
         Piece piece_on(Square square);
+
+        Specific_Piece specific_piece_on(Square square);
+
+        void do_move(Move move);
+
+        void undo_move();
+
+        vector<Specific_Piece> piece_captured_log;
+        vector<Castling> castling_rights_log;
+        vector<Square> enpassant_square_log;
+        vector<Move> move_log;
 };

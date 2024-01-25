@@ -95,10 +95,72 @@ Color Pos::color_on(Square square) {
 
 Piece Pos::piece_on(Square square) {
     for (int i = 0; i < 6; i++) {
-        
         if (bb_has(pieces_bbs[i], square)) {
             return Piece(i);
         }
     }
     return EMPTY;
 }
+
+Specific_Piece Pos::specific_piece_on(Square square) {
+    return Specific_Piece((color_on(square) * 6) + piece_on(square));
+}
+
+
+
+void Pos::do_move(Move move) {
+    piece_captured_log.push_back(specific_piece_on(to_square(move)));
+    castling_rights_log.push_back(cr);
+    enpassant_square_log.push_back(enpassant_sq);
+    move_log.push_back(move);
+
+    if (specific_piece_on(from_square(move)) == WHITE_KING) { 
+        cr.wkc = false;
+        cr.wqc = false;
+    }
+    if (specific_piece_on(from_square(move)) == BLACK_KING) {
+        cr.bkc = false;
+        cr.bqc = false;
+    }
+    if (specific_piece_on(from_square(move)) == WHITE_ROOK) {
+        if (from_square(move) == H1) {
+            cr.wkc = false;
+        } else if (from_square(move) == A1) {
+            cr.wqc = false;
+        }
+    }
+    if (specific_piece_on(from_square(move)) == BLACK_ROOK) {
+        if (from_square(move) == H8) {
+            cr.bkc = false;
+        } else if (from_square(move) == A8) {
+            cr.bqc = false;
+        }
+    }
+
+    enpassant_sq = is_enpassant(move) ? Square((from_square(move) + to_square(move)) / 2) : NONE_SQUARE;
+
+    if (is_promotion(move)) {
+        add_piece(turn, promotion_piece(move), to_square(move));
+    } else if (is_enpassant(move)) {
+        int direction = (turn == WHITE) ? 1 : -1;
+        add_piece(turn, piece_on(from_square(move)), to_square(move));
+        remove_piece(color_on(Square(to_square(move) + direction * 8)), piece_on(Square(to_square(move) + direction * 8)), Square(to_square(move) + direction * 8));
+    } else if (is_king_castle(move)) {
+        add_piece(turn, piece_on(from_square(move)), to_square(move));
+        add_piece(turn, ROOK, Square(from_square(move) - 1));
+        remove_piece(turn, ROOK, Square(from_square(move) + 3));
+    } else if (is_queen_castle(move)) {
+        add_piece(turn, piece_on(from_square(move)), to_square(move));
+        add_piece(turn, ROOK, Square(from_square(move) + 1));
+        remove_piece(turn, ROOK, Square(from_square(move) - 4));
+    } else {
+        add_piece(turn, piece_on(from_square(move)), to_square(move));
+    }
+
+    remove_piece(turn, piece_on(from_square(move)), from_square(move));
+    turn = Color(!turn);
+}
+
+// void Pos::undo_move() {
+
+// }

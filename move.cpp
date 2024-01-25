@@ -1,4 +1,5 @@
 #include "move.h"
+#include "types.h"
 
 MoveFlag flags(Move move) {
     return move >> 12;
@@ -25,19 +26,19 @@ bool is_promotion(Move move) {
 }
 
 bool is_queen_castle(Move move) {
-    return flags(move) QUEEN_CASTLE;
+    return flags(move) == QUEEN_CASTLE;
 }
 
 Square to_square(Move move) {
-    return move & 0b111111;
+    return Square(move & 0b111111);
 }
 
 Square from_square(Move move) {
-    return (move >> 6) & 0b111111;
+    return Square((move >> 6) & 0b111111);
 }
 
 Piece promotion_piece(Move move) {
-    return (flags(move) & 0b0011) + KNIGHT;
+    return Piece((flags(move) & 0b0011) + KNIGHT);
 }
 
 Square capture_square(Move move) {
