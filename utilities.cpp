@@ -34,6 +34,22 @@ map<pair<Piece, Color>, char> piece_to_char_color_map = {
     {{EMPTY, NO_COLOR}, '-'}
 };
 
+map<Specific_Piece, Piece> spiece_to_piece = {
+    {WHITE_PAWN, PAWN},
+    {WHITE_ROOK, ROOK},
+    {WHITE_KNIGHT, KNIGHT},
+    {WHITE_BISHOP, BISHOP},
+    {WHITE_QUEEN, QUEEN},
+    {WHITE_KING, KING},
+    {BLACK_PAWN, PAWN},
+    {BLACK_ROOK, ROOK},
+    {BLACK_KNIGHT, KNIGHT},
+    {BLACK_BISHOP, BISHOP},
+    {BLACK_QUEEN, QUEEN},
+    {BLACK_KING, KING},
+    {S_EMPTY, EMPTY}
+};
+
 char piece_to_char_color(Piece piece, Color color) {
     return piece_to_char_color_map[{piece, color}];
 }
@@ -65,4 +81,8 @@ BB bb_has(BB board, Square square) {
 
 BB bb_of(Square square) {
     return (1ULL << square);
+}
+
+Piece specific_piece_to_piece(Specific_Piece spiece) {
+    return spiece_to_piece[spiece];
 }

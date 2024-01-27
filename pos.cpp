@@ -161,6 +161,46 @@ void Pos::do_move(Move move) {
     turn = Color(!turn);
 }
 
-// void Pos::undo_move() {
+void Pos::undo_move() {
+    Move move = move_log.back();
+    move_log.pop_back();
 
-// }
+    cr = castling_rights_log.back();
+    castling_rights_log.pop_back();
+
+    enpassant_sq = enpassant_square_log.back();
+    enpassant_square_log.pop_back();
+
+    if (is_promotion(move)) {
+        add_piece(Color(!turn), PAWN, from_square(move));
+        if (piece_captured_log.back() != S_EMPTY) {
+            add_piece(Color(turn), specific_piece_to_piece(piece_captured_log.back()), to_square(move));
+        }
+        remove_piece(Color(!turn), promotion_piece(move), to_square(move));
+    } else if (is_enpassant(move)) {
+        int offset = (turn == WHITE) ? 8 : -8;
+        add_piece(Color(!turn), PAWN, from_square(move));
+        remove_piece(Color(!turn), PAWN, to_square(move));
+        add_piece(turn, specific_piece_to_piece(piece_captured_log.back()), Square(to_square(move) + offset));
+    } else if (is_king_castle(move)) {
+        add_piece(Color(!turn), KING, from_square(move));
+        remove_piece(Color(!turn), KING, to_square(move));
+        add_piece(Color(!turn), ROOK, Square(from_square(move) + 3));
+        remove_piece(Color(!turn), ROOK, Square(from_square(move) + 1));
+    } else if (is_queen_castle(move)) {
+        add_piece(Color(!turn), KING, from_square(move));
+        remove_piece(Color(!turn), KING, to_square(move));
+        add_piece(Color(!turn), ROOK, Square(from_square(move) - 4));
+        remove_piece(Color(!turn), ROOK, Square(from_square(move) - 1));
+    } else {
+        Piece piece_moved = piece_on(to_square(move));
+        add_piece(Color(!turn), piece_on(to_square(move)), from_square(move));
+        if (piece_captured_log.back() != S_EMPTY) {
+            add_piece(Color(turn), specific_piece_to_piece(piece_captured_log.back()), to_square(move));
+        }
+        remove_piece(Color(!turn), piece_moved, to_square(move));
+    }
+    
+    piece_captured_log.pop_back();
+    turn = Color(!turn);
+}

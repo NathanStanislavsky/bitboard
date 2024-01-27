@@ -18,3 +18,5 @@ char piece_to_char_color(Piece piece, Color color);
 BB bb_has(BB board, Square square);
 
 BB bb_of(Square square);
+
+Piece specific_piece_to_piece(Specific_Piece spiece);
