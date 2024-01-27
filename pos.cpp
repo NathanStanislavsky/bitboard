@@ -137,7 +137,7 @@ void Pos::do_move(Move move) {
         }
     }
 
-    enpassant_sq = is_enpassant(move) ? Square((from_square(move) + to_square(move)) / 2) : NONE_SQUARE;
+    enpassant_sq = is_double_pawn_push(move) ? Square((from_square(move) + to_square(move)) / 2) : NONE_SQUARE;
 
     if (is_promotion(move)) {
         add_piece(turn, promotion_piece(move), to_square(move));
