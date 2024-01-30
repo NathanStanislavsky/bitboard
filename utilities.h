@@ -20,3 +20,9 @@ BB bb_has(BB board, Square square);
 BB bb_of(Square square);
 
 Piece specific_piece_to_piece(Specific_Piece spiece);
+
+string move_to_string(Move move);
+
+string square_to_string(Square square);
+
+char specific_piece_to_char(Specific_Piece spiece);

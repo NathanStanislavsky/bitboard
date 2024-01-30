@@ -5,6 +5,7 @@
         "xtree": "cpp",
         "xutility": "cpp",
         "map": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "string": "cpp"
     }
 }

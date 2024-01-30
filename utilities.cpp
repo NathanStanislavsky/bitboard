@@ -1,5 +1,6 @@
 #include "utilities.h"
 #include <string>
+#include "move.h"
 
 using namespace std;
 
@@ -50,6 +51,31 @@ map<Specific_Piece, Piece> spiece_to_piece = {
     {S_EMPTY, EMPTY}
 };
 
+map<Specific_Piece, char> spiece_map = {
+    {WHITE_PAWN, 'P'},
+    {WHITE_ROOK, 'R'},
+    {WHITE_KNIGHT, 'N'},
+    {WHITE_BISHOP, 'B'},
+    {WHITE_QUEEN, 'Q'},
+    {WHITE_KING, 'K'},
+    {BLACK_PAWN, 'p'},
+    {BLACK_ROOK, 'r'},
+    {BLACK_KNIGHT, 'n'},
+    {BLACK_BISHOP, 'b'},
+    {BLACK_QUEEN, 'q'},
+    {BLACK_KING, 'k'},
+    {S_EMPTY, '-'}
+};
+
+map<Piece, char> piece_to_char_map = {
+    {PAWN, 'p'},
+    {KNIGHT, 'n'},
+    {BISHOP, 'b'},
+    {ROOK, 'r'},
+    {QUEEN, 'q'},
+    {KING, 'k'},
+};
+
 char piece_to_char_color(Piece piece, Color color) {
     return piece_to_char_color_map[{piece, color}];
 }
@@ -85,4 +111,16 @@ BB bb_of(Square square) {
 
 Piece specific_piece_to_piece(Specific_Piece spiece) {
     return spiece_to_piece[spiece];
+}
+
+char specific_piece_to_char(Specific_Piece spiece) {
+    return spiece_map[spiece];
+}
+
+string square_to_string(Square square) {
+    return string(1, (square % 8) + 'a') + string(1, (square / 8) + '1');
+}
+
+string move_to_string(Move move) {
+    return square_to_string(from_square(move)) + square_to_string(to_square(move)) + (is_promotion(move) ? "=" + string(1, piece_to_char_map[promotion_piece(move)]) : "");
 }

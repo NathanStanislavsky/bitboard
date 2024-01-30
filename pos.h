@@ -36,6 +36,8 @@ class Pos {
 
         void undo_move();
 
+        void print_logs();
+
         vector<Specific_Piece> piece_captured_log;
         vector<Castling> castling_rights_log;
         vector<Square> enpassant_square_log;

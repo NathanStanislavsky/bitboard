@@ -3,6 +3,7 @@
 #include <iostream>
 #include "types.h"
 #include "utilities.h"
+#include "move.h"
 
 using namespace std;
 
@@ -203,4 +204,26 @@ void Pos::undo_move() {
     
     piece_captured_log.pop_back();
     turn = Color(!turn);
+}
+
+void Pos::print_logs() {
+    for (int i = 0; i < piece_captured_log.size(); i++) {
+        cout << specific_piece_to_char(piece_captured_log[i]) + " ";
+    }
+    cout << "" << endl;
+
+    for (int i = 0; i < castling_rights_log.size(); i++) {
+        cout << to_string(castling_rights_log[i].wkc) + to_string(castling_rights_log[i].wqc) + to_string(castling_rights_log[i].bkc) + to_string(castling_rights_log[i].bqc) + " ";
+    }
+    cout << "" << endl;
+
+    for (int i = 0; i < enpassant_square_log.size(); i++) {
+        cout << to_string(enpassant_square_log[i]) + " ";
+    }
+    cout << "" << endl;
+
+    for (int i = 0; i < move_log.size(); i++) {
+        cout << move_to_string(move_log[i]) + " ";
+    }
+    cout << "" << endl;
 }
