@@ -208,7 +208,7 @@ void Pos::undo_move() {
 
 void Pos::print_logs() {
     for (int i = 0; i < piece_captured_log.size(); i++) {
-        cout << specific_piece_to_char(piece_captured_log[i]) + " ";
+        cout << specific_piece_to_char(piece_captured_log[i]) + string(" ");
     }
     cout << "" << endl;
 
