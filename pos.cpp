@@ -79,8 +79,8 @@ void Pos::add_piece(Color color, Piece piece, Square square)
 
 void Pos::remove_piece(Color color, Piece piece, Square square)
 {
-    colors_bbs[color] &= 1ULL << square;
-    pieces_bbs[piece] &= 1ULL << square;
+    colors_bbs[color] &= ~(1ULL << square); 
+    pieces_bbs[piece] &= ~(1ULL << square);
 }
 
 void Pos::print_board()

@@ -6,6 +6,7 @@
         "xutility": "cpp",
         "map": "cpp",
         "vector": "cpp",
-        "string": "cpp"
+        "string": "cpp",
+        "ostream": "cpp"
     }
 }
