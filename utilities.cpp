@@ -16,8 +16,7 @@ map<char, Piece> c_to_p = {
     {'n', KNIGHT},
     {'b', BISHOP},
     {'q', QUEEN},
-    {'k', KING}
-}; 
+    {'k', KING}};
 
 map<pair<Piece, Color>, char> piece_to_char_color_map = {
     {{PAWN, WHITE}, 'P'},
@@ -32,8 +31,7 @@ map<pair<Piece, Color>, char> piece_to_char_color_map = {
     {{BISHOP, BLACK}, 'b'},
     {{QUEEN, BLACK}, 'q'},
     {{KING, BLACK}, 'k'},
-    {{EMPTY, NO_COLOR}, '-'}
-};
+    {{EMPTY, NO_COLOR}, '-'}};
 
 map<Specific_Piece, Piece> spiece_to_piece = {
     {WHITE_PAWN, PAWN},
@@ -48,8 +46,7 @@ map<Specific_Piece, Piece> spiece_to_piece = {
     {BLACK_BISHOP, BISHOP},
     {BLACK_QUEEN, QUEEN},
     {BLACK_KING, KING},
-    {S_EMPTY, EMPTY}
-};
+    {S_EMPTY, EMPTY}};
 
 map<Specific_Piece, char> spiece_map = {
     {WHITE_PAWN, 'P'},
@@ -64,8 +61,7 @@ map<Specific_Piece, char> spiece_map = {
     {BLACK_BISHOP, 'b'},
     {BLACK_QUEEN, 'q'},
     {BLACK_KING, 'k'},
-    {S_EMPTY, '-'}
-};
+    {S_EMPTY, '-'}};
 
 map<Piece, char> piece_to_char_map = {
     {PAWN, 'p'},
@@ -76,51 +72,64 @@ map<Piece, char> piece_to_char_map = {
     {KING, 'k'},
 };
 
-char piece_to_char_color(Piece piece, Color color) {
+char piece_to_char_color(Piece piece, Color color)
+{
     return piece_to_char_color_map[{piece, color}];
 }
 
-
-Piece char_to_piece(char c) {
+Piece char_to_piece(char c)
+{
     return c_to_p[c];
 }
 
-Color color_of(char c) {
-    if (c >= 'A' && c <= 'Z') {
+Color color_of(char c)
+{
+    if (c >= 'A' && c <= 'Z')
+    {
         return WHITE;
-    } else {
+    }
+    else
+    {
         return BLACK;
     }
 }
 
-Square string_to_square(string str) {
+Square string_to_square(string str)
+{
     return square_of(str[1] - '1', str[0] - 'a');
 }
 
-Square square_of(int rank, int file) {
+Square square_of(int rank, int file)
+{
     return Square(rank * 8 + file);
 }
 
-BB bb_has(BB board, Square square) {
+BB bb_has(BB board, Square square)
+{
     return board & bb_of(square);
 }
 
-BB bb_of(Square square) {
+BB bb_of(Square square)
+{
     return (1ULL << square);
 }
 
-Piece specific_piece_to_piece(Specific_Piece spiece) {
+Piece specific_piece_to_piece(Specific_Piece spiece)
+{
     return spiece_to_piece[spiece];
 }
 
-char specific_piece_to_char(Specific_Piece spiece) {
+char specific_piece_to_char(Specific_Piece spiece)
+{
     return spiece_map[spiece];
 }
 
-string square_to_string(Square square) {
+string square_to_string(Square square)
+{
     return string(1, (square % 8) + 'a') + string(1, (square / 8) + '1');
 }
 
-string move_to_string(Move move) {
+string move_to_string(Move move)
+{
     return square_to_string(from_square(move)) + square_to_string(to_square(move)) + (is_promotion(move) ? "=" + string(1, piece_to_char_map[promotion_piece(move)]) : "");
 }
