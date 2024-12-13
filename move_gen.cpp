@@ -120,38 +120,35 @@ BB mask_knight_attacks(Square square)
     set_bit(bitboard, square);
 
     // Generate knight attacks
-    // up
-    if ((bitboard >> 17) & not_H_column)
+    if ((bitboard >> 17) & not_H_column) // Up-left
     {
         attacks |= (bitboard >> 17);
     }
-    if ((bitboard >> 15) & not_A_column)
+    if ((bitboard >> 15) & not_A_column) // Up-right
     {
         attacks |= (bitboard >> 15);
     }
-    if ((bitboard >> 10) & not_HG_column)
+    if ((bitboard >> 10) & not_HG_column) // Right-up
     {
         attacks |= (bitboard >> 10);
     }
-    if ((bitboard >> 6) & not_AB_column)
+    if ((bitboard >> 6) & not_AB_column) // Left-up
     {
         attacks |= (bitboard >> 6);
     }
-
-    // down
-    if ((bitboard << 17) & not_A_column)
+    if ((bitboard << 17) & not_A_column) // Down-left
     {
         attacks |= (bitboard << 17);
     }
-    if ((bitboard << 15) & not_H_column)
+    if ((bitboard << 15) & not_H_column) // Down-right
     {
         attacks |= (bitboard << 15);
     }
-    if ((bitboard << 10) & not_AB_column)
+    if ((bitboard << 10) & not_AB_column) // Right-down
     {
         attacks |= (bitboard << 10);
     }
-    if ((bitboard << 6) & not_HG_column)
+    if ((bitboard << 6) & not_HG_column) // Left-down
     {
         attacks |= (bitboard << 6);
     }

@@ -79,7 +79,7 @@ void Pos::add_piece(Color color, Piece piece, Square square)
 
 void Pos::remove_piece(Color color, Piece piece, Square square)
 {
-    colors_bbs[color] &= ~(1ULL << square); 
+    colors_bbs[color] &= ~(1ULL << square);
     pieces_bbs[piece] &= ~(1ULL << square);
 }
 
@@ -139,6 +139,7 @@ void Pos::do_move(Move move)
     enpassant_square_log.push_back(enpassant_sq);
     move_log.push_back(move);
 
+    // if the king or rook moves, we lose castling rights
     if (specific_piece_on(from_square(move)) == WHITE_KING)
     {
         cr.wkc = false;
@@ -169,6 +170,29 @@ void Pos::do_move(Move move)
         else if (from_square(move) == A8)
         {
             cr.bqc = false;
+        }
+    }
+    // Check if a rook is captured and update castling rights
+    if (specific_piece_on(to_square(move)) == BLACK_ROOK)
+    {
+        if (to_square(move) == H8)
+        {
+            cr.bkc = false;
+        }
+        else if (to_square(move) == A8)
+        {
+            cr.bqc = false;
+        }
+    }
+    if (specific_piece_on(to_square(move)) == WHITE_ROOK)
+    {
+        if (to_square(move) == H1)
+        {
+            cr.wkc = false;
+        }
+        else if (to_square(move) == A1)
+        {
+            cr.wqc = false;
         }
     }
 
