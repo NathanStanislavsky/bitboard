@@ -333,3 +333,18 @@ void init_leapers_attacks()
         king_attacks[square] = mask_king_attacks(Square(square));
     }
 }
+
+vector<Move> generate_psuedo_moves(const Pos &pos) {
+    vector<Move> moves;
+
+    Color side = pos.turn;
+    Color enemy = Color(!side);
+
+    BB current_side_pieces = pos.pieces_bbs[side];
+    BB current_side_pieces = pos.pieces_bbs[enemy];
+    BB all_pieces = current_side_pieces | enemy_side_pieces;
+    BB empty_squares = ~all_pieces;
+
+    
+
+}
