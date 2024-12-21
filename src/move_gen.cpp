@@ -334,17 +334,153 @@ void init_leapers_attacks()
     }
 }
 
-vector<Move> generate_psuedo_moves(const Pos &pos) {
+vector<Move> generate_psuedo_moves(const Pos &pos)
+{
     vector<Move> moves;
 
     Color side = pos.turn;
     Color enemy = Color(!side);
 
     BB current_side_pieces = pos.pieces_bbs[side];
-    BB current_side_pieces = pos.pieces_bbs[enemy];
+    BB enemy_side_pieces = pos.pieces_bbs[enemy];
     BB all_pieces = current_side_pieces | enemy_side_pieces;
     BB empty_squares = ~all_pieces;
 
-    
+    auto add_moves = [&](Square from, BB targets, Piece piece)
+    {
+        while (targets)
+        {
+            int to = __builtin_ctzll(targets);
+            targets &= targets - 1;
 
+            MoveFlag flag = QUIET;
+            if (bb_has(enemy_side_pieces, Square(to)))
+            {
+                flag = CAPTURE;
+            }
+
+            // Handle promotions if this is a pawn moving to last rank
+            if (piece == PAWN)
+            {
+                int rank = to / 8;
+                if ((side == WHITE && rank == 7) || (side == BLACK && rank == 0))
+                {
+                    moves.push_back(make_move(from, Square(to), (MoveFlag)Q_PROM | (flag == CAPTURE ? CAPTURE : 0)));
+                    moves.push_back(make_move(from, Square(to), (MoveFlag)R_PROM | (flag == CAPTURE ? CAPTURE : 0)));
+                    moves.push_back(make_move(from, Square(to), (MoveFlag)B_PROM | (flag == CAPTURE ? CAPTURE : 0)));
+                    moves.push_back(make_move(from, Square(to), (MoveFlag)N_PROM | (flag == CAPTURE ? CAPTURE : 0)));
+                    continue;
+                }
+            }
+
+            // Normal move
+            moves.push_back(make_move(from, Square(to), flag));
+        }
+    };
+
+    // Generate Pawn Moves
+    // -------------------
+    BB pawns = pos.pieces_bbs[PAWN] & current_side_pieces;
+
+    // Direction and double-push rank depend on side
+    int forward = (side == WHITE) ? 8 : -8;
+    int start_rank = (side == WHITE) ? 1 : 6; // White pawns start at rank 2 (index 1), Black at rank 7 (index 6)
+
+    while (pawns)
+    {
+        Square from = (Square)__builtin_ctzll(pawns);
+        pawns &= pawns - 1;
+
+        Piece piece = PAWN;
+
+        // Pawn captures
+        BB captures = pawn_attacks[side][from] & enemy_side_pieces;
+        add_moves(from, captures, piece);
+
+        // En passant (not shown here, requires pos.enpassant_sq check)
+        // if (pos.enpassant_sq != NONE_SQUARE) { ... }
+
+        // Pawn forward moves
+        int to_int = from + forward;
+        if (to_int >= A1 && to_int <= H8 && bb_has(empty_squares, Square(to_int)))
+        {
+            // Single push
+            Square to_s = Square(to_int);
+            // Promotion handled in add_moves if last rank
+            moves.push_back(make_move(from, to_s));
+
+            // Double push
+            int rank = from / 8;
+            if (rank == start_rank)
+            {
+                int to_int2 = from + 2 * forward;
+                if (to_int2 >= A1 && to_int2 <= H8 && bb_has(empty_squares, Square(to_int2)))
+                {
+                    moves.push_back(make_move(from, Square(to_int2), DOUBLE_PAWN_PUSH));
+                }
+            }
+        }
+    }
+
+    // Knights
+    // -------
+    BB knights = pos.pieces_bbs[KNIGHT] & current_side_pieces;
+    while (knights)
+    {
+        Square from = (Square)__builtin_ctzll(knights);
+        knights &= knights - 1;
+        BB attacks = knight_attacks[from] & ~current_side_pieces;
+        add_moves(from, attacks, KNIGHT);
+    }
+
+    // Bishops
+    // -------
+    BB bishops = pos.pieces_bbs[BISHOP] & current_side_pieces;
+    while (bishops)
+    {
+        Square from = (Square)__builtin_ctzll(bishops);
+        bishops &= bishops - 1;
+        BB attacks = mask_bishop_attacks(from, all_pieces) & ~current_side_pieces;
+        add_moves(from, attacks, BISHOP);
+    }
+
+    // Rooks
+    // -----
+    BB rooks = pos.pieces_bbs[ROOK] & current_side_pieces;
+    while (rooks)
+    {
+        Square from = (Square)__builtin_ctzll(rooks);
+        rooks &= rooks - 1;
+        BB attacks = mask_rook_attacks(from, all_pieces) & ~current_side_pieces;
+        add_moves(from, attacks, ROOK);
+    }
+
+    // Queens
+    // ------
+    BB queens = pos.pieces_bbs[QUEEN] & current_side_pieces;
+    while (queens)
+    {
+        Square from = (Square)__builtin_ctzll(queens);
+        queens &= queens - 1;
+        BB attacks = mask_queen_attacks(from, all_pieces) & ~current_side_pieces;
+        add_moves(from, attacks, QUEEN);
+    }
+
+    // King
+    // ----
+    BB king = pos.pieces_bbs[KING] & current_side_pieces;
+    if (king)
+    {
+        Square from = (Square)__builtin_ctzll(king);
+        BB attacks = king_attacks[from] & ~current_side_pieces;
+        add_moves(from, attacks, KING);
+
+        // Castling (pseudo-legal):
+        // Check if castling is allowed and squares are empty/attacked (requires additional logic)
+        // if (side == WHITE && pos.cr.wkc && ...) { ... add_moves(... KING_CASTLE) }
+        // Similarly for wqc, bkc, bqc.
+    }
+
+    return moves;
+}
 }
