@@ -1,5 +1,6 @@
 #include "types.h"
 #include <vector>
+#include "pos.h"
 
 // Pawn attacks [side][square]
 BB pawn_attacks[2][64];
@@ -27,4 +28,4 @@ BB mask_queen_attacks(int square, BB block);
 // generate leaper piece attacks
 void init_leapers_attacks();
 
-vector<Move> generate_psuedo_moves(const Pos &pos)
+std::vector<Move> generate_psuedo_moves(const Pos &pos);
