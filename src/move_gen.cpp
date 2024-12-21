@@ -1,5 +1,6 @@
 #include "move_gen.h"
 #include "types.h"
+#include <vector>
 
 #define get_bit(bitboard, square) (bitboard & (1ULL << square))
 #define set_bit(bitboard, square) (bitboard |= (1ULL << square))
@@ -336,7 +337,7 @@ void init_leapers_attacks()
 
 vector<Move> generate_psuedo_moves(const Pos &pos)
 {
-    vector<Move> moves;
+    std::vector<Move> moves;
 
     Color side = pos.turn;
     Color enemy = Color(!side);
@@ -482,5 +483,4 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
     }
 
     return moves;
-}
 }
