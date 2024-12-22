@@ -480,30 +480,76 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
         {
             if (pos.cr.wkc)
             {
-                // Castling (pseudo-legal):
-                // Check if castling is allowed and squares are empty/attacked (requires additional logic)
-                // if (pos.cr.wkc && ...) { ... add_moves(... KING_CASTLE) }
+                bool squaresEmpty = !bb_has(all_pieces, F1) && !bb_has(all_pieces, G1);
+
+                bool notAttacked = true;
+                if (is_square_attacked(E1, enemy, pos))
+                    notAttacked = false;
+                if (is_square_attacked(F1, enemy, pos))
+                    notAttacked = false;
+                if (is_square_attacked(G1, enemy, pos))
+                    notAttacked = false;
+
+                if (squaresEmpty && notAttacked)
+                {
+                    moves.push_back(make_move(E1, G1, KING_CASTLE));
+                }
             }
-            if (pos.cr.wqc) 
+
+            if (pos.cr.wqc)
             {
-                // Castling (pseudo-legal):
-                // Check if castling is allowed and squares are empty/attacked (requires additional logic)
-                // if (pos.cr.wkc && ...) { ... add_moves(... KING_CASTLE) }
+                bool squaresEmpty = !bb_has(all_pieces, D1) && !bb_has(all_pieces, C1) && !bb_has(all_pieces, B1);
+
+                bool notAttacked = true;
+                if (is_square_attacked(E1, enemy, pos))
+                    notAttacked = false;
+                if (is_square_attacked(D1, enemy, pos))
+                    notAttacked = false;
+                if (is_square_attacked(C1, enemy, pos))
+                    notAttacked = false;
+
+                if (squaresEmpty && notAttacked)
+                {
+                    moves.push_back(make_move(E1, C1, QUEEN_CASTLE));
+                }
             }
         }
-        else
+        else 
         {
             if (pos.cr.bkc)
             {
-                // Castling (pseudo-legal):
-                // Check if castling is allowed and squares are empty/attacked (requires additional logic)
-                // if (pos.cr.bkc && ...) { ... add_moves(... KING_CASTLE) }
+                bool squaresEmpty = !bb_has(all_pieces, F8) && !bb_has(all_pieces, G8);
+
+                bool notAttacked = true;
+                if (is_square_attacked(E8, enemy, pos))
+                    notAttacked = false;
+                if (is_square_attacked(F8, enemy, pos))
+                    notAttacked = false;
+                if (is_square_attacked(G8, enemy, pos))
+                    notAttacked = false;
+
+                if (squaresEmpty && notAttacked)
+                {
+                    moves.push_back(make_move(E8, G8, KING_CASTLE));
+                }
             }
+
             if (pos.cr.bqc)
             {
-                // Castling (pseudo-legal):
-                // Check if castling is allowed and squares are empty/attacked (requires additional logic)
-                // if (pos.cr.bkc && ...) { ... add_moves(... KING_CASTLE) }
+                bool squaresEmpty = !bb_has(all_pieces, D8) && !bb_has(all_pieces, C8) && !bb_has(all_pieces, B8);
+
+                bool notAttacked = true;
+                if (is_square_attacked(E8, enemy, pos))
+                    notAttacked = false;
+                if (is_square_attacked(D8, enemy, pos))
+                    notAttacked = false;
+                if (is_square_attacked(C8, enemy, pos))
+                    notAttacked = false;
+
+                if (squaresEmpty && notAttacked)
+                {
+                    moves.push_back(make_move(E8, C8, QUEEN_CASTLE));
+                }
             }
         }
     }

@@ -1,6 +1,7 @@
 #include "types.h"
 #include <vector>
 #include "pos.h"
+#include "utilities.h"
 
 // Pawn attacks [side][square]
 BB pawn_attacks[2][64];
