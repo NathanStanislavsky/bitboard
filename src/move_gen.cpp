@@ -476,10 +476,36 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
         BB attacks = king_attacks[from] & ~current_side_pieces;
         add_moves(from, attacks, KING);
 
-        // Castling (pseudo-legal):
-        // Check if castling is allowed and squares are empty/attacked (requires additional logic)
-        // if (side == WHITE && pos.cr.wkc && ...) { ... add_moves(... KING_CASTLE) }
-        // Similarly for wqc, bkc, bqc.
+        if (side == WHITE)
+        {
+            if (pos.cr.wkc)
+            {
+                // Castling (pseudo-legal):
+                // Check if castling is allowed and squares are empty/attacked (requires additional logic)
+                // if (pos.cr.wkc && ...) { ... add_moves(... KING_CASTLE) }
+            }
+            if (pos.cr.wqc) 
+            {
+                // Castling (pseudo-legal):
+                // Check if castling is allowed and squares are empty/attacked (requires additional logic)
+                // if (pos.cr.wkc && ...) { ... add_moves(... KING_CASTLE) }
+            }
+        }
+        else
+        {
+            if (pos.cr.bkc)
+            {
+                // Castling (pseudo-legal):
+                // Check if castling is allowed and squares are empty/attacked (requires additional logic)
+                // if (pos.cr.bkc && ...) { ... add_moves(... KING_CASTLE) }
+            }
+            if (pos.cr.bqc)
+            {
+                // Castling (pseudo-legal):
+                // Check if castling is allowed and squares are empty/attacked (requires additional logic)
+                // if (pos.cr.bkc && ...) { ... add_moves(... KING_CASTLE) }
+            }
+        }
     }
 
     return moves;
