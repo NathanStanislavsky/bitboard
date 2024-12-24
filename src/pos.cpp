@@ -4,6 +4,7 @@
 #include "types.h"
 #include "utilities.h"
 #include "move.h"
+#include "move_gen.h"
 
 using namespace std;
 
@@ -310,4 +311,75 @@ void Pos::print_logs()
         cout << move_to_string(move_log[i]) + " ";
     }
     cout << "" << endl;
+}
+
+bool Pos::is_square_attacked(Square sq, Color side) const
+{
+    BB side_pawns = pieces_bbs[PAWN] & colors_bbs[side];
+    BB side_knights = pieces_bbs[KNIGHT] & colors_bbs[side];
+    BB side_bishops = pieces_bbs[BISHOP] & colors_bbs[side];
+    BB side_rooks = pieces_bbs[ROOK] & colors_bbs[side];
+    BB side_queens = pieces_bbs[QUEEN] & colors_bbs[side];
+    BB side_king = pieces_bbs[KING] & colors_bbs[side];
+
+    BB all_pieces = colors_bbs[WHITE] | colors_bbs[BLACK];
+
+    while (side_pawns)
+    {
+        int from = __builtin_ctzll(side_pawns);
+        side_pawns &= side_pawns - 1;
+
+        if ((pawn_attacks[side][from] & (1ULL << sq)) != 0)
+            return true;
+    }
+
+    while (side_knights)
+    {
+        int from = __builtin_ctzll(side_knights);
+        side_knights &= side_knights - 1;
+
+        if ((knight_attacks[from] & (1ULL << sq)) != 0)
+            return true;
+    }
+
+    BB diagonals = side_bishops | side_queens;
+    while (diagonals)
+    {
+        int from = __builtin_ctzll(diagonals);
+        diagonals &= diagonals - 1;
+
+        BB attacks = mask_bishop_attacks(from, all_pieces);
+        if ((attacks & (1ULL << sq)) != 0)
+            return true;
+    }
+
+    BB straights = side_rooks | side_queens;
+    while (straights)
+    {
+        int from = __builtin_ctzll(straights);
+        straights &= straights - 1;
+
+        BB attacks = mask_rook_attacks(from, all_pieces);
+        if ((attacks & (1ULL << sq)) != 0)
+            return true;
+    }
+
+    if (side_king)
+    {
+        int from = __builtin_ctzll(side_king);
+
+        if ((king_attacks[from] & (1ULL << sq)) != 0)
+            return true;
+    }
+
+    return false;
+}
+
+bool Pos::is_in_check(Color side) const
+{
+    Square king_location = static_cast<Square>(
+        __builtin_ctzll(pieces_bbs[KING] & colors_bbs[side])
+    );
+
+    return is_square_attacked(king_location, Color(!side));
 }

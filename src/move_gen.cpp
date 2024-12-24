@@ -1,10 +1,17 @@
 #include "move_gen.h"
 #include "types.h"
 #include <vector>
+#include <iostream>
+
+using namespace std;
 
 #define get_bit(bitboard, square) (bitboard & (1ULL << square))
 #define set_bit(bitboard, square) (bitboard |= (1ULL << square))
 #define remove_bit(bitboard, square) (get_bit(bitboard, square) ? bitboard ^= (1ULL << square) : 0)
+
+BB pawn_attacks[2][64];
+BB knight_attacks[64];
+BB king_attacks[64];
 
 // A column
 static const BB not_A_column = 18374403900871474942ULL;
@@ -77,31 +84,31 @@ BB mask_pawn_attacks(Color side, Square square)
     // white pawns
     if (!side)
     {
-        if ((bitboard << 7) & not_H_column)
+        // White pawns capturing left (up-left):
+        if ((bitboard << 7) & not_A_column)
         {
-            // attack south west
             attacks |= (bitboard << 7);
         }
 
-        if ((bitboard << 9) & not_A_column)
+        // White pawns capturing right (up-right):
+        if ((bitboard << 9) & not_H_column)
         {
-            // attack south east
             attacks |= (bitboard << 9);
         }
     }
     // black pawns
     else
     {
-        if ((bitboard >> 7) & not_A_column)
+        // Black capturing left (down-left) => >> 9
+        if ((bitboard >> 9) & not_A_column)
         {
-            // attack north east
-            attacks |= (bitboard >> 7);
+            attacks |= (bitboard >> 9);
         }
 
-        if ((bitboard >> 9) & not_H_column)
+        // Black capturing right (down-right) => >> 7
+        if ((bitboard >> 7) & not_H_column)
         {
-            // attack north west
-            attacks |= (bitboard >> 9);
+            attacks |= (bitboard >> 7);
         }
     }
 
@@ -342,10 +349,17 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
     Color side = pos.turn;
     Color enemy = Color(!side);
 
-    BB current_side_pieces = pos.pieces_bbs[side];
-    BB enemy_side_pieces = pos.pieces_bbs[enemy];
+    BB current_side_pieces = pos.colors_bbs[side];
+    BB enemy_side_pieces = pos.colors_bbs[enemy];
     BB all_pieces = current_side_pieces | enemy_side_pieces;
     BB empty_squares = ~all_pieces;
+
+    BB pawns = pos.pieces_bbs[PAWN] & pos.colors_bbs[side];
+    BB knights = pos.pieces_bbs[KNIGHT] & pos.colors_bbs[side];
+    BB bishops = pos.pieces_bbs[BISHOP] & pos.colors_bbs[side];
+    BB rooks = pos.pieces_bbs[ROOK] & pos.colors_bbs[side];
+    BB queens = pos.pieces_bbs[QUEEN] & pos.colors_bbs[side];
+    BB king = pos.pieces_bbs[KING] & pos.colors_bbs[side];
 
     auto add_moves = [&](Square from, BB targets, Piece piece)
     {
@@ -381,8 +395,6 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
     // Generate Pawn Moves
     // -------------------
-    BB pawns = pos.pieces_bbs[PAWN] & current_side_pieces;
-
     // Direction and double-push rank depend on side
     int forward = (side == WHITE) ? 8 : -8;
     int start_rank = (side == WHITE) ? 1 : 6; // White pawns start at rank 2 (index 1), Black at rank 7 (index 6)
@@ -432,7 +444,6 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
     // Knights
     // -------
-    BB knights = pos.pieces_bbs[KNIGHT] & current_side_pieces;
     while (knights)
     {
         Square from = (Square)__builtin_ctzll(knights);
@@ -443,7 +454,6 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
     // Bishops
     // -------
-    BB bishops = pos.pieces_bbs[BISHOP] & current_side_pieces;
     while (bishops)
     {
         Square from = (Square)__builtin_ctzll(bishops);
@@ -454,7 +464,6 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
     // Rooks
     // -----
-    BB rooks = pos.pieces_bbs[ROOK] & current_side_pieces;
     while (rooks)
     {
         Square from = (Square)__builtin_ctzll(rooks);
@@ -465,7 +474,6 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
     // Queens
     // ------
-    BB queens = pos.pieces_bbs[QUEEN] & current_side_pieces;
     while (queens)
     {
         Square from = (Square)__builtin_ctzll(queens);
@@ -476,7 +484,6 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
     // King
     // ----
-    BB king = pos.pieces_bbs[KING] & current_side_pieces;
     if (king)
     {
         Square from = (Square)__builtin_ctzll(king);
@@ -490,11 +497,11 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
                 bool squaresEmpty = !bb_has(all_pieces, F1) && !bb_has(all_pieces, G1);
 
                 bool notAttacked = true;
-                if (is_square_attacked(E1, enemy, pos))
+                if (pos.is_square_attacked(E1, enemy))
                     notAttacked = false;
-                if (is_square_attacked(F1, enemy, pos))
+                if (pos.is_square_attacked(F1, enemy))
                     notAttacked = false;
-                if (is_square_attacked(G1, enemy, pos))
+                if (pos.is_square_attacked(G1, enemy))
                     notAttacked = false;
 
                 if (squaresEmpty && notAttacked)
@@ -508,11 +515,11 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
                 bool squaresEmpty = !bb_has(all_pieces, D1) && !bb_has(all_pieces, C1) && !bb_has(all_pieces, B1);
 
                 bool notAttacked = true;
-                if (is_square_attacked(E1, enemy, pos))
+                if (pos.is_square_attacked(E1, enemy))
                     notAttacked = false;
-                if (is_square_attacked(D1, enemy, pos))
+                if (pos.is_square_attacked(D1, enemy))
                     notAttacked = false;
-                if (is_square_attacked(C1, enemy, pos))
+                if (pos.is_square_attacked(C1, enemy))
                     notAttacked = false;
 
                 if (squaresEmpty && notAttacked)
@@ -528,11 +535,11 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
                 bool squaresEmpty = !bb_has(all_pieces, F8) && !bb_has(all_pieces, G8);
 
                 bool notAttacked = true;
-                if (is_square_attacked(E8, enemy, pos))
+                if (pos.is_square_attacked(E8, enemy))
                     notAttacked = false;
-                if (is_square_attacked(F8, enemy, pos))
+                if (pos.is_square_attacked(F8, enemy))
                     notAttacked = false;
-                if (is_square_attacked(G8, enemy, pos))
+                if (pos.is_square_attacked(G8, enemy))
                     notAttacked = false;
 
                 if (squaresEmpty && notAttacked)
@@ -546,11 +553,11 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
                 bool squaresEmpty = !bb_has(all_pieces, D8) && !bb_has(all_pieces, C8) && !bb_has(all_pieces, B8);
 
                 bool notAttacked = true;
-                if (is_square_attacked(E8, enemy, pos))
+                if (pos.is_square_attacked(E8, enemy))
                     notAttacked = false;
-                if (is_square_attacked(D8, enemy, pos))
+                if (pos.is_square_attacked(D8, enemy))
                     notAttacked = false;
-                if (is_square_attacked(C8, enemy, pos))
+                if (pos.is_square_attacked(C8, enemy))
                     notAttacked = false;
 
                 if (squaresEmpty && notAttacked)
@@ -562,4 +569,23 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
     }
 
     return moves;
+}
+
+std::vector<Move> generate_legal_moves(Pos &pos)
+{
+    std::vector<Move> pseudoMoves = generate_psuedo_moves(pos);
+    std::vector<Move> legalMoves;
+    legalMoves.reserve(pseudoMoves.size());
+
+    for (Move m : pseudoMoves)
+    {
+        pos.do_move(m);
+        if (!pos.is_in_check(pos.turn))
+        {
+            legalMoves.push_back(m);
+        }
+        pos.undo_move();
+    }
+
+    return legalMoves;
 }
