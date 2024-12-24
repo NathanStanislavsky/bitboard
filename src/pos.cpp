@@ -212,14 +212,14 @@ void Pos::do_move(Move move)
     else if (is_king_castle(move))
     {
         add_piece(turn, piece_on(from_square(move)), to_square(move));
-        add_piece(turn, ROOK, Square(from_square(move) - 1));
-        remove_piece(turn, ROOK, Square(from_square(move) + 3));
+        add_piece(turn, ROOK, Square(from_square(move) + 1));
+        remove_piece(turn, ROOK, Square(from_square(move) - 3));
     }
     else if (is_queen_castle(move))
     {
         add_piece(turn, piece_on(from_square(move)), to_square(move));
-        add_piece(turn, ROOK, Square(from_square(move) + 1));
-        remove_piece(turn, ROOK, Square(from_square(move) - 4));
+        add_piece(turn, ROOK, Square(from_square(move) - 1));
+        remove_piece(turn, ROOK, Square(from_square(move) + 4));
     }
     else
     {
