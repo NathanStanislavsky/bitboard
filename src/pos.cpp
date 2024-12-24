@@ -140,150 +140,203 @@ void Pos::do_move(Move move)
     enpassant_square_log.push_back(enpassant_sq);
     move_log.push_back(move);
 
+    Square from = from_square(move);
+    Square to   = to_square(move);
+
+    Specific_Piece movedSP    = specific_piece_on(from);
+    Specific_Piece capturedSP = specific_piece_on(to); 
+    Color sideMoving          = turn;
+    Piece movedPiece          = specific_piece_to_piece(movedSP);
+
     // if the king or rook moves, we lose castling rights
-    if (specific_piece_on(from_square(move)) == WHITE_KING)
+    if (movedSP == WHITE_KING)
     {
         cr.wkc = false;
         cr.wqc = false;
     }
-    if (specific_piece_on(from_square(move)) == BLACK_KING)
+    if (movedSP == BLACK_KING)
     {
         cr.bkc = false;
         cr.bqc = false;
     }
-    if (specific_piece_on(from_square(move)) == WHITE_ROOK)
+    if (movedSP == WHITE_ROOK)
     {
-        if (from_square(move) == H1)
+        if (from == H1)
         {
             cr.wkc = false;
         }
-        else if (from_square(move) == A1)
+        else if (from == A1)
         {
             cr.wqc = false;
         }
     }
-    if (specific_piece_on(from_square(move)) == BLACK_ROOK)
+    if (movedSP == BLACK_ROOK)
     {
-        if (from_square(move) == H8)
+        if (from == H8)
         {
             cr.bkc = false;
         }
-        else if (from_square(move) == A8)
+        else if (from == A8)
         {
             cr.bqc = false;
         }
     }
     // Check if a rook is captured and update castling rights
-    if (specific_piece_on(to_square(move)) == BLACK_ROOK)
+    if (capturedSP == BLACK_ROOK)
     {
-        if (to_square(move) == H8)
+        if (to == H8)
         {
             cr.bkc = false;
         }
-        else if (to_square(move) == A8)
+        else if (to == A8)
         {
             cr.bqc = false;
         }
     }
-    if (specific_piece_on(to_square(move)) == WHITE_ROOK)
+    if (capturedSP == WHITE_ROOK)
     {
-        if (to_square(move) == H1)
+        if (to == H1)
         {
             cr.wkc = false;
         }
-        else if (to_square(move) == A1)
+        else if (to == A1)
         {
             cr.wqc = false;
         }
     }
 
-    enpassant_sq = is_double_pawn_push(move) ? Square((from_square(move) + to_square(move)) / 2) : NONE_SQUARE;
-
-    if (is_promotion(move))
+    if (is_double_pawn_push(move))
     {
-        add_piece(turn, promotion_piece(move), to_square(move));
-    }
-    else if (is_enpassant(move))
-    {
-        int direction = (turn == WHITE) ? 1 : -1;
-        add_piece(turn, piece_on(from_square(move)), to_square(move));
-        remove_piece(color_on(Square(to_square(move) + direction * 8)), piece_on(Square(to_square(move) + direction * 8)), Square(to_square(move) + direction * 8));
-    }
-    else if (is_king_castle(move))
-    {
-        add_piece(turn, piece_on(from_square(move)), to_square(move));
-        add_piece(turn, ROOK, Square(from_square(move) + 1));
-        remove_piece(turn, ROOK, Square(from_square(move) + 3));
-    }
-    else if (is_queen_castle(move))
-    {
-        add_piece(turn, piece_on(from_square(move)), to_square(move));
-        add_piece(turn, ROOK, Square(from_square(move) - 1));
-        remove_piece(turn, ROOK, Square(from_square(move) - 4));
+        enpassant_sq = Square((from + to) / 2);
     }
     else
     {
-        add_piece(turn, piece_on(from_square(move)), to_square(move));
+        enpassant_sq = NONE_SQUARE;
     }
 
-    remove_piece(turn, piece_on(from_square(move)), from_square(move));
+    remove_piece(sideMoving, movedPiece, from);
+
+    if (is_promotion(move))
+    {
+        add_piece(sideMoving, promotion_piece(move), to);
+    }
+    else if (is_enpassant(move))
+    {
+        add_piece(sideMoving, movedPiece, to);
+        int direction = (turn == WHITE) ? 1 : -1;
+        Square capSq  = Square(to + direction * 8); 
+        remove_piece(color_on(capSq), piece_on(capSq), capSq);
+    }
+    else if (is_king_castle(move))
+    {
+        add_piece(sideMoving, movedPiece, to);
+        remove_piece(sideMoving, ROOK, Square(from + 3));
+        add_piece(sideMoving, ROOK, Square(from + 1));
+    }
+    else if (is_queen_castle(move))
+    {
+        add_piece(sideMoving, movedPiece, to);
+        remove_piece(sideMoving, ROOK, Square(from - 4));
+        add_piece(sideMoving, ROOK, Square(from - 1));
+    }
+    else
+    {
+        add_piece(sideMoving, movedPiece, to);
+    }
+
     turn = Color(!turn);
 }
 
 void Pos::undo_move()
 {
+    // Retrieve the last move
     Move move = move_log.back();
     move_log.pop_back();
 
+    // Restore castling rights & enpassant from logs
     cr = castling_rights_log.back();
     castling_rights_log.pop_back();
 
     enpassant_sq = enpassant_square_log.back();
     enpassant_square_log.pop_back();
 
+    // Retrieve which piece was captured
+    // This is the piece that was on 'to_square' (could be S_EMPTY if no capture)
+    Specific_Piece capturedSP = piece_captured_log.back();
+    piece_captured_log.pop_back();
+
+    Square from = from_square(move);
+    Square to   = to_square(move);
+
+    // Flip turn back
+    turn = Color(!turn);
+
+    // Identify what piece moved (on the board after 'do_move')
+    Specific_Piece movedSP = specific_piece_on(to);
+    Piece movedPiece       = specific_piece_to_piece(movedSP);
+
+    // Reverse the special moves
     if (is_promotion(move))
     {
-        add_piece(Color(!turn), PAWN, from_square(move));
-        if (piece_captured_log.back() != S_EMPTY)
+        // Remove the promoted piece from 'to'
+        remove_piece(turn, promotion_piece(move), to);
+
+        // Restore the pawn on 'from'
+        add_piece(turn, PAWN, from);
+
+        // If a capture occurred, restore it
+        if (capturedSP != S_EMPTY)
         {
-            add_piece(Color(turn), specific_piece_to_piece(piece_captured_log.back()), to_square(move));
+            add_piece(Color(!turn), specific_piece_to_piece(capturedSP), to);
         }
-        remove_piece(Color(!turn), promotion_piece(move), to_square(move));
     }
     else if (is_enpassant(move))
     {
-        int offset = (turn == WHITE) ? 8 : -8;
-        add_piece(Color(!turn), PAWN, from_square(move));
-        remove_piece(Color(!turn), PAWN, to_square(move));
-        add_piece(turn, specific_piece_to_piece(piece_captured_log.back()), Square(to_square(move) + offset));
+        // Remove the moved pawn from 'to'
+        remove_piece(turn, movedPiece, to);
+
+        // Place the pawn back on 'from'
+        add_piece(turn, movedPiece, from);
+
+        // Restore the captured enemy pawn behind 'to'
+        int offset = (turn == WHITE) ? -8 : 8;
+        Square capSq = Square(to + offset);
+
+        add_piece(Color(!turn), specific_piece_to_piece(capturedSP), capSq);
     }
     else if (is_king_castle(move))
     {
-        add_piece(Color(!turn), KING, from_square(move));
-        remove_piece(Color(!turn), KING, to_square(move));
-        add_piece(Color(!turn), ROOK, Square(from_square(move) + 3));
-        remove_piece(Color(!turn), ROOK, Square(from_square(move) + 1));
+        // Remove king from 'to', place it back on 'from'
+        remove_piece(turn, KING, to);
+        add_piece(turn, KING, from);
+
+        // Move rook back from (from+1) to (from+3)
+        remove_piece(turn, ROOK, Square(from + 1));
+        add_piece(turn, ROOK, Square(from + 3));
     }
     else if (is_queen_castle(move))
     {
-        add_piece(Color(!turn), KING, from_square(move));
-        remove_piece(Color(!turn), KING, to_square(move));
-        add_piece(Color(!turn), ROOK, Square(from_square(move) - 4));
-        remove_piece(Color(!turn), ROOK, Square(from_square(move) - 1));
+        // Remove king from 'to', place it back on 'from'
+        remove_piece(turn, KING, to);
+        add_piece(turn, KING, from);
+
+        // Move rook back from (from-1) to (from-4)
+        remove_piece(turn, ROOK, Square(from - 1));
+        add_piece(turn, ROOK, Square(from - 4));
     }
     else
     {
-        Piece piece_moved = piece_on(to_square(move));
-        add_piece(Color(!turn), piece_on(to_square(move)), from_square(move));
-        if (piece_captured_log.back() != S_EMPTY)
-        {
-            add_piece(Color(turn), specific_piece_to_piece(piece_captured_log.back()), to_square(move));
-        }
-        remove_piece(Color(!turn), piece_moved, to_square(move));
-    }
+        // Normal move
+        // Remove the moved piece from 'to', place it back on 'from'
+        remove_piece(turn, movedPiece, to);
+        add_piece(turn, movedPiece, from);
 
-    piece_captured_log.pop_back();
-    turn = Color(!turn);
+        // If there was a capture, restore it on 'to'
+        if (capturedSP != S_EMPTY)
+        {
+            add_piece(Color(!turn), specific_piece_to_piece(capturedSP), to);
+        }
+    }
 }
 
 void Pos::print_logs()

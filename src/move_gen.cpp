@@ -344,8 +344,6 @@ void init_leapers_attacks()
 
 vector<Move> generate_psuedo_moves(const Pos &pos)
 {
-    init_leapers_attacks();
-
     std::vector<Move> moves;
 
     Color side = pos.turn;
@@ -612,7 +610,6 @@ uint64_t perft(Pos &pos, int depth)
     // For each legal move, recurse
     for (Move m : moves)
     {
-        std::cout << "Doing move " << move_to_string(m) << "..." << std::endl;
         pos.do_move(m);
         nodes += perft(pos, depth - 1);
         pos.undo_move();

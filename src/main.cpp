@@ -7,19 +7,15 @@
 
 int main()
 {
-    // Suppose you have a standard FEN for the initial position
+    init_leapers_attacks();
+
     Pos pos("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
     pos.print_board();
 
-    // Depth at which you want to do the 'divide' output
-    int depth = 2; // or 2, 3, etc.
+    int depth = 2;
 
-    // This will print each move and how many positions it generates
     uint64_t total = perft_divide(pos, depth);
-
-    // Optionally compare 'total' with known perft results
-    // e.g., perft(1) = 20 from the initial position, etc.
 
     return 0;
 }
