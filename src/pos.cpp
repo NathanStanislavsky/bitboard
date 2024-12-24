@@ -261,15 +261,15 @@ void Pos::undo_move()
     {
         add_piece(Color(!turn), KING, from_square(move));
         remove_piece(Color(!turn), KING, to_square(move));
-        add_piece(Color(!turn), ROOK, Square(from_square(move) + 3));
-        remove_piece(Color(!turn), ROOK, Square(from_square(move) + 1));
+        add_piece(Color(!turn), ROOK, Square(from_square(move) - 3));
+        remove_piece(Color(!turn), ROOK, Square(from_square(move) - 1));
     }
     else if (is_queen_castle(move))
     {
         add_piece(Color(!turn), KING, from_square(move));
         remove_piece(Color(!turn), KING, to_square(move));
-        add_piece(Color(!turn), ROOK, Square(from_square(move) - 4));
-        remove_piece(Color(!turn), ROOK, Square(from_square(move) - 1));
+        add_piece(Color(!turn), ROOK, Square(from_square(move) + 4));
+        remove_piece(Color(!turn), ROOK, Square(from_square(move) + 1));
     }
     else
     {
