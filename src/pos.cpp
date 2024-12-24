@@ -147,6 +147,7 @@ void Pos::do_move(Move move)
     Specific_Piece capturedSP = specific_piece_on(to); 
     Color sideMoving          = turn;
     Piece movedPiece          = specific_piece_to_piece(movedSP);
+    Piece capturedPiece       = specific_piece_to_piece(capturedSP);
 
     // if the king or rook moves, we lose castling rights
     if (movedSP == WHITE_KING)
@@ -215,6 +216,12 @@ void Pos::do_move(Move move)
     }
 
     remove_piece(sideMoving, movedPiece, from);
+
+    if (!is_enpassant(move) && capturedSP != S_EMPTY)
+    {
+        Color captureColor = Color(!sideMoving);
+        remove_piece(captureColor, capturedPiece, to);
+    }
 
     if (is_promotion(move))
     {
