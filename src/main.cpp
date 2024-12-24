@@ -20,5 +20,13 @@ int main()
     }
     std::cout << std::endl;
 
+    std::vector<Move> legalMoves = generate_legal_moves(pos);
+    std::cout << "Legal moves:\n";
+    for (Move m : legalMoves)
+    {
+        std::cout << move_to_string(m) << " ";
+    }
+    std::cout << std::endl;
+
     return 0;
 }

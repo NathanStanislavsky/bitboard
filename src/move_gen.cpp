@@ -84,31 +84,31 @@ BB mask_pawn_attacks(Color side, Square square)
     // white pawns
     if (!side)
     {
-        if ((bitboard << 7) & not_H_column)
+        // White pawns capturing left (up-left):
+        if ((bitboard << 7) & not_A_column)
         {
-            // attack south west
             attacks |= (bitboard << 7);
         }
 
-        if ((bitboard << 9) & not_A_column)
+        // White pawns capturing right (up-right):
+        if ((bitboard << 9) & not_H_column)
         {
-            // attack south east
             attacks |= (bitboard << 9);
         }
     }
     // black pawns
     else
     {
-        if ((bitboard >> 7) & not_A_column)
+        // Black capturing left (down-left) => >> 9
+        if ((bitboard >> 9) & not_A_column)
         {
-            // attack north east
-            attacks |= (bitboard >> 7);
+            attacks |= (bitboard >> 9);
         }
 
-        if ((bitboard >> 9) & not_H_column)
+        // Black capturing right (down-right) => >> 7
+        if ((bitboard >> 7) & not_H_column)
         {
-            // attack north west
-            attacks |= (bitboard >> 9);
+            attacks |= (bitboard >> 7);
         }
     }
 
@@ -395,7 +395,6 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
     // Generate Pawn Moves
     // -------------------
-    std::cout << "Pawns bitboard: " << std::hex << pawns << std::dec << std::endl;
     // Direction and double-push rank depend on side
     int forward = (side == WHITE) ? 8 : -8;
     int start_rank = (side == WHITE) ? 1 : 6; // White pawns start at rank 2 (index 1), Black at rank 7 (index 6)
