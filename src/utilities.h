@@ -2,6 +2,7 @@
 #include "types.h"
 #include <string>
 #include <map>
+#include "pos.h"
 
 using namespace std;
 
@@ -26,7 +27,3 @@ string move_to_string(Move move);
 string square_to_string(Square square);
 
 char specific_piece_to_char(Specific_Piece spiece);
-
-bool is_square_attacked(Square sq, Color side, const Pos& pos);
-
-bool is_in_check(Color side, const Pos &pos);
