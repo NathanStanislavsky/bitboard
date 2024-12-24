@@ -1,6 +1,9 @@
 #include "move_gen.h"
 #include "types.h"
 #include <vector>
+#include <iostream>
+
+using namespace std;
 
 #define get_bit(bitboard, square) (bitboard & (1ULL << square))
 #define set_bit(bitboard, square) (bitboard |= (1ULL << square))
@@ -346,10 +349,17 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
     Color side = pos.turn;
     Color enemy = Color(!side);
 
-    BB current_side_pieces = pos.pieces_bbs[side];
-    BB enemy_side_pieces = pos.pieces_bbs[enemy];
+    BB current_side_pieces = pos.colors_bbs[side];
+    BB enemy_side_pieces = pos.colors_bbs[enemy];
     BB all_pieces = current_side_pieces | enemy_side_pieces;
     BB empty_squares = ~all_pieces;
+
+    BB pawns = pos.pieces_bbs[PAWN] & pos.colors_bbs[side];
+    BB knights = pos.pieces_bbs[KNIGHT] & pos.colors_bbs[side];
+    BB bishops = pos.pieces_bbs[BISHOP] & pos.colors_bbs[side];
+    BB rooks = pos.pieces_bbs[ROOK] & pos.colors_bbs[side];
+    BB queens = pos.pieces_bbs[QUEEN] & pos.colors_bbs[side];
+    BB king = pos.pieces_bbs[KING] & pos.colors_bbs[side];
 
     auto add_moves = [&](Square from, BB targets, Piece piece)
     {
@@ -385,8 +395,7 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
     // Generate Pawn Moves
     // -------------------
-    BB pawns = pos.pieces_bbs[PAWN] & current_side_pieces;
-
+    std::cout << "Pawns bitboard: " << std::hex << pawns << std::dec << std::endl;
     // Direction and double-push rank depend on side
     int forward = (side == WHITE) ? 8 : -8;
     int start_rank = (side == WHITE) ? 1 : 6; // White pawns start at rank 2 (index 1), Black at rank 7 (index 6)
@@ -436,7 +445,6 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
     // Knights
     // -------
-    BB knights = pos.pieces_bbs[KNIGHT] & current_side_pieces;
     while (knights)
     {
         Square from = (Square)__builtin_ctzll(knights);
@@ -447,7 +455,6 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
     // Bishops
     // -------
-    BB bishops = pos.pieces_bbs[BISHOP] & current_side_pieces;
     while (bishops)
     {
         Square from = (Square)__builtin_ctzll(bishops);
@@ -458,7 +465,6 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
     // Rooks
     // -----
-    BB rooks = pos.pieces_bbs[ROOK] & current_side_pieces;
     while (rooks)
     {
         Square from = (Square)__builtin_ctzll(rooks);
@@ -469,7 +475,6 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
     // Queens
     // ------
-    BB queens = pos.pieces_bbs[QUEEN] & current_side_pieces;
     while (queens)
     {
         Square from = (Square)__builtin_ctzll(queens);
@@ -480,7 +485,6 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
     // King
     // ----
-    BB king = pos.pieces_bbs[KING] & current_side_pieces;
     if (king)
     {
         Square from = (Square)__builtin_ctzll(king);
