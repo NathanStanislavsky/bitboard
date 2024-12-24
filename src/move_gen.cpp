@@ -398,8 +398,15 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
         BB captures = pawn_attacks[side][from] & enemy_side_pieces;
         add_moves(from, captures, piece);
 
-        // En passant (not shown here, requires pos.enpassant_sq check)
-        // if (pos.enpassant_sq != NONE_SQUARE) { ... }
+        if (pos.enpassant_sq != NONE_SQUARE)
+        {
+            Square ep = pos.enpassant_sq;
+
+            if ((pawn_attacks[side][from] & (1ULL << ep)) != 0)
+            {
+                moves.push_back(make_move(from, ep, EP));
+            }
+        }
 
         // Pawn forward moves
         int to_int = from + forward;
@@ -514,7 +521,7 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
                 }
             }
         }
-        else 
+        else
         {
             if (pos.cr.bkc)
             {
