@@ -30,3 +30,5 @@ BB mask_queen_attacks(int square, BB block);
 void init_leapers_attacks();
 
 std::vector<Move> generate_psuedo_moves(const Pos &pos);
+
+std::vector<Move> generate_legal_moves(Pos &pos);

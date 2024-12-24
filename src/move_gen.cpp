@@ -563,3 +563,22 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
     return moves;
 }
+
+std::vector<Move> generate_legal_moves(Pos &pos)
+{
+    std::vector<Move> pseudoMoves = generate_pseudolegal_moves(pos);
+    std::vector<Move> legalMoves;
+    legalMoves.reserve(pseudoMoves.size());
+
+    for (Move m : pseudoMoves)
+    {
+        pos.do_move(m);
+        if (!is_in_check(pos.turn))
+        {
+            legalMoves.push_back(m);
+        }
+        pos.undo_move();
+    }
+
+    return legalMoves;
+}
