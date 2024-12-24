@@ -134,14 +134,14 @@ string move_to_string(Move move)
     return square_to_string(from_square(move)) + square_to_string(to_square(move)) + (is_promotion(move) ? "=" + string(1, piece_to_char_map[promotion_piece(move)]) : "");
 }
 
-bool is_square_attacked(Square sq, Color side, const Pos& pos)
+bool is_square_attacked(Square sq, Color side, const Pos &pos)
 {
-    BB side_pawns    = pos.pieces_bbs[PAWN]   & pos.colors_bbs[side];
-    BB side_knights  = pos.pieces_bbs[KNIGHT] & pos.colors_bbs[side];
-    BB side_bishops  = pos.pieces_bbs[BISHOP] & pos.colors_bbs[side];
-    BB side_rooks    = pos.pieces_bbs[ROOK]   & pos.colors_bbs[side];
-    BB side_queens   = pos.pieces_bbs[QUEEN]  & pos.colors_bbs[side];
-    BB side_king     = pos.pieces_bbs[KING]   & pos.colors_bbs[side];
+    BB side_pawns = pos.pieces_bbs[PAWN] & pos.colors_bbs[side];
+    BB side_knights = pos.pieces_bbs[KNIGHT] & pos.colors_bbs[side];
+    BB side_bishops = pos.pieces_bbs[BISHOP] & pos.colors_bbs[side];
+    BB side_rooks = pos.pieces_bbs[ROOK] & pos.colors_bbs[side];
+    BB side_queens = pos.pieces_bbs[QUEEN] & pos.colors_bbs[side];
+    BB side_king = pos.pieces_bbs[KING] & pos.colors_bbs[side];
 
     BB all_pieces = pos.colors_bbs[WHITE] | pos.colors_bbs[BLACK];
 
@@ -150,7 +150,7 @@ bool is_square_attacked(Square sq, Color side, const Pos& pos)
         int from = __builtin_ctzll(side_pawns);
         side_pawns &= side_pawns - 1;
 
-        if ( (pawn_attacks[side][from] & (1ULL << sq)) != 0 )
+        if ((pawn_attacks[side][from] & (1ULL << sq)) != 0)
             return true;
     }
 
@@ -159,7 +159,7 @@ bool is_square_attacked(Square sq, Color side, const Pos& pos)
         int from = __builtin_ctzll(side_knights);
         side_knights &= side_knights - 1;
 
-        if ( (knight_attacks[from] & (1ULL << sq)) != 0 )
+        if ((knight_attacks[from] & (1ULL << sq)) != 0)
             return true;
     }
 
@@ -170,7 +170,7 @@ bool is_square_attacked(Square sq, Color side, const Pos& pos)
         diagonals &= diagonals - 1;
 
         BB attacks = mask_bishop_attacks(from, all_pieces);
-        if ( (attacks & (1ULL << sq)) != 0 )
+        if ((attacks & (1ULL << sq)) != 0)
             return true;
     }
 
@@ -181,7 +181,7 @@ bool is_square_attacked(Square sq, Color side, const Pos& pos)
         straights &= straights - 1;
 
         BB attacks = mask_rook_attacks(from, all_pieces);
-        if ( (attacks & (1ULL << sq)) != 0 )
+        if ((attacks & (1ULL << sq)) != 0)
             return true;
     }
 
@@ -189,9 +189,16 @@ bool is_square_attacked(Square sq, Color side, const Pos& pos)
     {
         int from = __builtin_ctzll(side_king);
 
-        if ( (king_attacks[from] & (1ULL << sq)) != 0 )
+        if ((king_attacks[from] & (1ULL << sq)) != 0)
             return true;
     }
 
     return false;
+}
+
+bool is_in_check(Color side, const Pos &pos)
+{
+    Square king_location = __builtin_ctzll(pos.pieces_bbs[KING] & pos.colors_bbs[side]);
+
+    return is_square_attacked(king_location, Color(!side), pos);
 }
