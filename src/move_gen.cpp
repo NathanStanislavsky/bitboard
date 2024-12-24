@@ -6,6 +6,10 @@
 #define set_bit(bitboard, square) (bitboard |= (1ULL << square))
 #define remove_bit(bitboard, square) (get_bit(bitboard, square) ? bitboard ^= (1ULL << square) : 0)
 
+BB pawn_attacks[2][64];
+BB knight_attacks[64];
+BB king_attacks[64];
+
 // A column
 static const BB not_A_column = 18374403900871474942ULL;
 
@@ -490,11 +494,11 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
                 bool squaresEmpty = !bb_has(all_pieces, F1) && !bb_has(all_pieces, G1);
 
                 bool notAttacked = true;
-                if (is_square_attacked(E1, enemy, pos))
+                if (pos.is_square_attacked(E1, enemy))
                     notAttacked = false;
-                if (is_square_attacked(F1, enemy, pos))
+                if (pos.is_square_attacked(F1, enemy))
                     notAttacked = false;
-                if (is_square_attacked(G1, enemy, pos))
+                if (pos.is_square_attacked(G1, enemy))
                     notAttacked = false;
 
                 if (squaresEmpty && notAttacked)
@@ -508,11 +512,11 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
                 bool squaresEmpty = !bb_has(all_pieces, D1) && !bb_has(all_pieces, C1) && !bb_has(all_pieces, B1);
 
                 bool notAttacked = true;
-                if (is_square_attacked(E1, enemy, pos))
+                if (pos.is_square_attacked(E1, enemy))
                     notAttacked = false;
-                if (is_square_attacked(D1, enemy, pos))
+                if (pos.is_square_attacked(D1, enemy))
                     notAttacked = false;
-                if (is_square_attacked(C1, enemy, pos))
+                if (pos.is_square_attacked(C1, enemy))
                     notAttacked = false;
 
                 if (squaresEmpty && notAttacked)
@@ -528,11 +532,11 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
                 bool squaresEmpty = !bb_has(all_pieces, F8) && !bb_has(all_pieces, G8);
 
                 bool notAttacked = true;
-                if (is_square_attacked(E8, enemy, pos))
+                if (pos.is_square_attacked(E8, enemy))
                     notAttacked = false;
-                if (is_square_attacked(F8, enemy, pos))
+                if (pos.is_square_attacked(F8, enemy))
                     notAttacked = false;
-                if (is_square_attacked(G8, enemy, pos))
+                if (pos.is_square_attacked(G8, enemy))
                     notAttacked = false;
 
                 if (squaresEmpty && notAttacked)
@@ -546,11 +550,11 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
                 bool squaresEmpty = !bb_has(all_pieces, D8) && !bb_has(all_pieces, C8) && !bb_has(all_pieces, B8);
 
                 bool notAttacked = true;
-                if (is_square_attacked(E8, enemy, pos))
+                if (pos.is_square_attacked(E8, enemy))
                     notAttacked = false;
-                if (is_square_attacked(D8, enemy, pos))
+                if (pos.is_square_attacked(D8, enemy))
                     notAttacked = false;
-                if (is_square_attacked(C8, enemy, pos))
+                if (pos.is_square_attacked(C8, enemy))
                     notAttacked = false;
 
                 if (squaresEmpty && notAttacked)
@@ -566,14 +570,14 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
 std::vector<Move> generate_legal_moves(Pos &pos)
 {
-    std::vector<Move> pseudoMoves = generate_pseudolegal_moves(pos);
+    std::vector<Move> pseudoMoves = generate_psuedo_moves(pos);
     std::vector<Move> legalMoves;
     legalMoves.reserve(pseudoMoves.size());
 
     for (Move m : pseudoMoves)
     {
         pos.do_move(m);
-        if (!is_in_check(pos.turn))
+        if (!pos.is_in_check(pos.turn))
         {
             legalMoves.push_back(m);
         }

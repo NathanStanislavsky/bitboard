@@ -313,16 +313,16 @@ void Pos::print_logs()
     cout << "" << endl;
 }
 
-bool Pos::is_square_attacked(Square sq, Color side, const Pos &pos)
+bool Pos::is_square_attacked(Square sq, Color side) const
 {
-    BB side_pawns = pos.pieces_bbs[PAWN] & pos.colors_bbs[side];
-    BB side_knights = pos.pieces_bbs[KNIGHT] & pos.colors_bbs[side];
-    BB side_bishops = pos.pieces_bbs[BISHOP] & pos.colors_bbs[side];
-    BB side_rooks = pos.pieces_bbs[ROOK] & pos.colors_bbs[side];
-    BB side_queens = pos.pieces_bbs[QUEEN] & pos.colors_bbs[side];
-    BB side_king = pos.pieces_bbs[KING] & pos.colors_bbs[side];
+    BB side_pawns = pieces_bbs[PAWN] & colors_bbs[side];
+    BB side_knights = pieces_bbs[KNIGHT] & colors_bbs[side];
+    BB side_bishops = pieces_bbs[BISHOP] & colors_bbs[side];
+    BB side_rooks = pieces_bbs[ROOK] & colors_bbs[side];
+    BB side_queens = pieces_bbs[QUEEN] & colors_bbs[side];
+    BB side_king = pieces_bbs[KING] & colors_bbs[side];
 
-    BB all_pieces = pos.colors_bbs[WHITE] | pos.colors_bbs[BLACK];
+    BB all_pieces = colors_bbs[WHITE] | colors_bbs[BLACK];
 
     while (side_pawns)
     {
@@ -375,11 +375,11 @@ bool Pos::is_square_attacked(Square sq, Color side, const Pos &pos)
     return false;
 }
 
-bool Pos::is_in_check(Color side, const Pos &pos)
+bool Pos::is_in_check(Color side) const
 {
     Square king_location = static_cast<Square>(
-        __builtin_ctzll(pos.pieces_bbs[KING] & pos.colors_bbs[side])
+        __builtin_ctzll(pieces_bbs[KING] & colors_bbs[side])
     );
 
-    return is_square_attacked(king_location, Color(!side), pos);
+    return is_square_attacked(king_location, Color(!side));
 }

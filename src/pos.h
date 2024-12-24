@@ -43,7 +43,7 @@ public:
     vector<Square> enpassant_square_log;
     vector<Move> move_log;
 
-    bool is_square_attacked(Square sq, Color side, const Pos &pos);
+    bool is_square_attacked(Square sq, Color side) const;
 
-    bool is_in_check(Color side, const Pos &pos);
+    bool is_in_check(Color side) const;
 };
