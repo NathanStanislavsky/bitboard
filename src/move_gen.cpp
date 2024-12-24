@@ -1,12 +1,13 @@
 #include "move_gen.h"
 #include "types.h"
+#include <vector>
 
 #define get_bit(bitboard, square) (bitboard & (1ULL << square))
 #define set_bit(bitboard, square) (bitboard |= (1ULL << square))
 #define remove_bit(bitboard, square) (get_bit(bitboard, square) ? bitboard ^= (1ULL << square) : 0)
 
 // A column
-const BB not_A_column = 18374403900871474942ULL;
+static const BB not_A_column = 18374403900871474942ULL;
 
 // 11111110
 // 11111110
@@ -20,7 +21,7 @@ const BB not_A_column = 18374403900871474942ULL;
 // 1111111011111110111111101111111011111110111111101111111011111110
 
 // H column
-const BB not_H_column = 9187201950435737471ULL;
+static const BB not_H_column = 9187201950435737471ULL;
 
 // 11111110
 // 11111110
@@ -34,7 +35,7 @@ const BB not_H_column = 9187201950435737471ULL;
 // 111111101111111011111110111111101111111011111110111111101111111
 
 // HG column
-const BB not_HG_column = 4557430888798830399ULL;
+static const BB not_HG_column = 4557430888798830399ULL;
 
 // 11111100
 // 11111100
@@ -48,7 +49,7 @@ const BB not_HG_column = 4557430888798830399ULL;
 // 11111100111111001111110011111100111111001111110011111100111111
 
 // AB column
-const BB not_AB_column = 18229723555195321596ULL;
+static const BB not_AB_column = 18229723555195321596ULL;
 
 // 0 0 1 1 1 1 1 1
 // 0 0 1 1 1 1 1 1
@@ -332,4 +333,233 @@ void init_leapers_attacks()
 
         king_attacks[square] = mask_king_attacks(Square(square));
     }
+}
+
+vector<Move> generate_psuedo_moves(const Pos &pos)
+{
+    std::vector<Move> moves;
+
+    Color side = pos.turn;
+    Color enemy = Color(!side);
+
+    BB current_side_pieces = pos.pieces_bbs[side];
+    BB enemy_side_pieces = pos.pieces_bbs[enemy];
+    BB all_pieces = current_side_pieces | enemy_side_pieces;
+    BB empty_squares = ~all_pieces;
+
+    auto add_moves = [&](Square from, BB targets, Piece piece)
+    {
+        while (targets)
+        {
+            int to = __builtin_ctzll(targets);
+            targets &= targets - 1;
+
+            MoveFlag flag = QUIET;
+            if (bb_has(enemy_side_pieces, Square(to)))
+            {
+                flag = CAPTURE;
+            }
+
+            // Handle promotions if this is a pawn moving to last rank
+            if (piece == PAWN)
+            {
+                int rank = to / 8;
+                if ((side == WHITE && rank == 7) || (side == BLACK && rank == 0))
+                {
+                    moves.push_back(make_move(from, Square(to), (MoveFlag)Q_PROM | (flag == CAPTURE ? CAPTURE : 0)));
+                    moves.push_back(make_move(from, Square(to), (MoveFlag)R_PROM | (flag == CAPTURE ? CAPTURE : 0)));
+                    moves.push_back(make_move(from, Square(to), (MoveFlag)B_PROM | (flag == CAPTURE ? CAPTURE : 0)));
+                    moves.push_back(make_move(from, Square(to), (MoveFlag)N_PROM | (flag == CAPTURE ? CAPTURE : 0)));
+                    continue;
+                }
+            }
+
+            // Normal move
+            moves.push_back(make_move(from, Square(to), flag));
+        }
+    };
+
+    // Generate Pawn Moves
+    // -------------------
+    BB pawns = pos.pieces_bbs[PAWN] & current_side_pieces;
+
+    // Direction and double-push rank depend on side
+    int forward = (side == WHITE) ? 8 : -8;
+    int start_rank = (side == WHITE) ? 1 : 6; // White pawns start at rank 2 (index 1), Black at rank 7 (index 6)
+
+    while (pawns)
+    {
+        Square from = (Square)__builtin_ctzll(pawns);
+        pawns &= pawns - 1;
+
+        Piece piece = PAWN;
+
+        // Pawn captures
+        BB captures = pawn_attacks[side][from] & enemy_side_pieces;
+        add_moves(from, captures, piece);
+
+        if (pos.enpassant_sq != NONE_SQUARE)
+        {
+            Square ep = pos.enpassant_sq;
+
+            if ((pawn_attacks[side][from] & (1ULL << ep)) != 0)
+            {
+                moves.push_back(make_move(from, ep, EP));
+            }
+        }
+
+        // Pawn forward moves
+        int to_int = from + forward;
+        if (to_int >= A1 && to_int <= H8 && bb_has(empty_squares, Square(to_int)))
+        {
+            // Single push
+            Square to_s = Square(to_int);
+            // Promotion handled in add_moves if last rank
+            moves.push_back(make_move(from, to_s));
+
+            // Double push
+            int rank = from / 8;
+            if (rank == start_rank)
+            {
+                int to_int2 = from + 2 * forward;
+                if (to_int2 >= A1 && to_int2 <= H8 && bb_has(empty_squares, Square(to_int2)))
+                {
+                    moves.push_back(make_move(from, Square(to_int2), DOUBLE_PAWN_PUSH));
+                }
+            }
+        }
+    }
+
+    // Knights
+    // -------
+    BB knights = pos.pieces_bbs[KNIGHT] & current_side_pieces;
+    while (knights)
+    {
+        Square from = (Square)__builtin_ctzll(knights);
+        knights &= knights - 1;
+        BB attacks = knight_attacks[from] & ~current_side_pieces;
+        add_moves(from, attacks, KNIGHT);
+    }
+
+    // Bishops
+    // -------
+    BB bishops = pos.pieces_bbs[BISHOP] & current_side_pieces;
+    while (bishops)
+    {
+        Square from = (Square)__builtin_ctzll(bishops);
+        bishops &= bishops - 1;
+        BB attacks = mask_bishop_attacks(from, all_pieces) & ~current_side_pieces;
+        add_moves(from, attacks, BISHOP);
+    }
+
+    // Rooks
+    // -----
+    BB rooks = pos.pieces_bbs[ROOK] & current_side_pieces;
+    while (rooks)
+    {
+        Square from = (Square)__builtin_ctzll(rooks);
+        rooks &= rooks - 1;
+        BB attacks = mask_rook_attacks(from, all_pieces) & ~current_side_pieces;
+        add_moves(from, attacks, ROOK);
+    }
+
+    // Queens
+    // ------
+    BB queens = pos.pieces_bbs[QUEEN] & current_side_pieces;
+    while (queens)
+    {
+        Square from = (Square)__builtin_ctzll(queens);
+        queens &= queens - 1;
+        BB attacks = mask_queen_attacks(from, all_pieces) & ~current_side_pieces;
+        add_moves(from, attacks, QUEEN);
+    }
+
+    // King
+    // ----
+    BB king = pos.pieces_bbs[KING] & current_side_pieces;
+    if (king)
+    {
+        Square from = (Square)__builtin_ctzll(king);
+        BB attacks = king_attacks[from] & ~current_side_pieces;
+        add_moves(from, attacks, KING);
+
+        if (side == WHITE)
+        {
+            if (pos.cr.wkc)
+            {
+                bool squaresEmpty = !bb_has(all_pieces, F1) && !bb_has(all_pieces, G1);
+
+                bool notAttacked = true;
+                if (is_square_attacked(E1, enemy, pos))
+                    notAttacked = false;
+                if (is_square_attacked(F1, enemy, pos))
+                    notAttacked = false;
+                if (is_square_attacked(G1, enemy, pos))
+                    notAttacked = false;
+
+                if (squaresEmpty && notAttacked)
+                {
+                    moves.push_back(make_move(E1, G1, KING_CASTLE));
+                }
+            }
+
+            if (pos.cr.wqc)
+            {
+                bool squaresEmpty = !bb_has(all_pieces, D1) && !bb_has(all_pieces, C1) && !bb_has(all_pieces, B1);
+
+                bool notAttacked = true;
+                if (is_square_attacked(E1, enemy, pos))
+                    notAttacked = false;
+                if (is_square_attacked(D1, enemy, pos))
+                    notAttacked = false;
+                if (is_square_attacked(C1, enemy, pos))
+                    notAttacked = false;
+
+                if (squaresEmpty && notAttacked)
+                {
+                    moves.push_back(make_move(E1, C1, QUEEN_CASTLE));
+                }
+            }
+        }
+        else
+        {
+            if (pos.cr.bkc)
+            {
+                bool squaresEmpty = !bb_has(all_pieces, F8) && !bb_has(all_pieces, G8);
+
+                bool notAttacked = true;
+                if (is_square_attacked(E8, enemy, pos))
+                    notAttacked = false;
+                if (is_square_attacked(F8, enemy, pos))
+                    notAttacked = false;
+                if (is_square_attacked(G8, enemy, pos))
+                    notAttacked = false;
+
+                if (squaresEmpty && notAttacked)
+                {
+                    moves.push_back(make_move(E8, G8, KING_CASTLE));
+                }
+            }
+
+            if (pos.cr.bqc)
+            {
+                bool squaresEmpty = !bb_has(all_pieces, D8) && !bb_has(all_pieces, C8) && !bb_has(all_pieces, B8);
+
+                bool notAttacked = true;
+                if (is_square_attacked(E8, enemy, pos))
+                    notAttacked = false;
+                if (is_square_attacked(D8, enemy, pos))
+                    notAttacked = false;
+                if (is_square_attacked(C8, enemy, pos))
+                    notAttacked = false;
+
+                if (squaresEmpty && notAttacked)
+                {
+                    moves.push_back(make_move(E8, C8, QUEEN_CASTLE));
+                }
+            }
+        }
+    }
+
+    return moves;
 }
