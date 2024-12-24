@@ -24,3 +24,6 @@ void init_leapers_attacks();
 // Move generation
 std::vector<Move> generate_psuedo_moves(const Pos &pos);
 std::vector<Move> generate_legal_moves(Pos &pos);
+
+uint64_t perft(Pos &pos, int depth);
+uint64_t perft_divide(Pos &pos, int depth);

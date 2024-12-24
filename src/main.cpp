@@ -7,26 +7,17 @@
 
 int main()
 {
+    // Suppose you have a standard FEN for the initial position
     Pos pos("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
-    init_leapers_attacks();
+    // Depth at which you want to do the 'divide' output
+    int depth = 2; // or 2, 3, etc.
 
-    std::vector<Move> pseudoMoves = generate_psuedo_moves(pos);
+    // This will print each move and how many positions it generates
+    uint64_t total = perft_divide(pos, depth);
 
-    std::cout << "Pseudolegal moves:\n";
-    for (Move m : pseudoMoves)
-    {
-        std::cout << move_to_string(m) << " ";
-    }
-    std::cout << std::endl;
-
-    std::vector<Move> legalMoves = generate_legal_moves(pos);
-    std::cout << "Legal moves:\n";
-    for (Move m : legalMoves)
-    {
-        std::cout << move_to_string(m) << " ";
-    }
-    std::cout << std::endl;
+    // Optionally compare 'total' with known perft results
+    // e.g., perft(1) = 20 from the initial position, etc.
 
     return 0;
 }

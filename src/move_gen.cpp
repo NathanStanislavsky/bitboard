@@ -344,6 +344,8 @@ void init_leapers_attacks()
 
 vector<Move> generate_psuedo_moves(const Pos &pos)
 {
+    init_leapers_attacks();
+
     std::vector<Move> moves;
 
     Color side = pos.turn;
@@ -588,4 +590,52 @@ std::vector<Move> generate_legal_moves(Pos &pos)
     }
 
     return legalMoves;
+}
+
+uint64_t perft(Pos &pos, int depth)
+{
+    // Base case: if depth == 0, we are at a leaf node (the current position).
+    if (depth == 0)
+        return 1ULL;
+
+    // Generate all legal moves at this position
+    std::vector<Move> moves = generate_legal_moves(pos);
+    if (moves.empty())
+    {
+        // No moves at this position, so for depth > 0, it counts as 1 leaf as well
+        // (or 0 if you're strictly counting continuations).
+        return 1ULL; 
+    }
+
+    uint64_t nodes = 0ULL;
+
+    // For each legal move, recurse
+    for (Move m : moves)
+    {
+        std::cout << "Doing move " << move_to_string(m) << "..." << std::endl;
+        pos.do_move(m);
+        nodes += perft(pos, depth - 1);
+        pos.undo_move();
+    }
+
+    return nodes;
+}
+
+uint64_t perft_divide(Pos &pos, int depth)
+{
+    std::vector<Move> moves = generate_legal_moves(pos);
+    uint64_t totalNodes = 0ULL;
+
+    for (Move m : moves)
+    {
+        pos.do_move(m);
+        uint64_t nodes = perft(pos, depth - 1);
+        pos.undo_move();
+
+        std::cout << move_to_string(m) << ": " << nodes << "\n";
+        totalNodes += nodes;
+    }
+
+    std::cout << "Total: " << totalNodes << "\n";
+    return totalNodes;
 }
