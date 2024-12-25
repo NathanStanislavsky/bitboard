@@ -170,6 +170,7 @@ void testMasks()
         Square sq = E2; // 12 in 0-based indexing
         BB attacks = mask_pawn_attacks(WHITE, sq);
         std::cout << "White Pawn attacks from E2:\n";
+        std::cout << attacks << std::endl;
         print_bitboard(attacks);
     }
 
@@ -178,6 +179,7 @@ void testMasks()
         Square sq = D7; // 51 in 0-based indexing
         BB attacks = mask_pawn_attacks(BLACK, sq);
         std::cout << "Black Pawn attacks from D7:\n";
+        std::cout << attacks << std::endl;
         print_bitboard(attacks);
     }
 
