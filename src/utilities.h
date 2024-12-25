@@ -27,3 +27,7 @@ string move_to_string(Move move);
 string square_to_string(Square square);
 
 char specific_piece_to_char(Specific_Piece spiece);
+
+void print_bitboard(BB bb);
+
+void testMasks();

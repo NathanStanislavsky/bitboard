@@ -393,19 +393,21 @@ bool Pos::is_square_attacked(Square sq, Color side) const
 
     while (side_pawns)
     {
-        int from = __builtin_ctzll(side_pawns);
+        Square from = static_cast<Square>(__builtin_ctzll(side_pawns));
         side_pawns &= side_pawns - 1;
+        BB attacks = mask_pawn_attacks(side, from);
 
-        if ((pawn_attacks[side][from] & (1ULL << sq)) != 0)
+        if ((attacks & (1ULL << sq)) != 0)
             return true;
     }
 
     while (side_knights)
     {
-        int from = __builtin_ctzll(side_knights);
+        Square from = static_cast<Square>(__builtin_ctzll(side_knights));
         side_knights &= side_knights - 1;
+        BB attacks = mask_knight_attacks(from);
 
-        if ((knight_attacks[from] & (1ULL << sq)) != 0)
+        if ((attacks & (1ULL << sq)) != 0)
             return true;
     }
 
@@ -433,9 +435,10 @@ bool Pos::is_square_attacked(Square sq, Color side) const
 
     if (side_king)
     {
-        int from = __builtin_ctzll(side_king);
+        Square from = static_cast<Square>(__builtin_ctzll(side_king));
+        BB attacks = mask_king_attacks(from);
 
-        if ((king_attacks[from] & (1ULL << sq)) != 0)
+        if ((attacks & (1ULL << sq)) != 0)
             return true;
     }
 

@@ -9,10 +9,6 @@ using namespace std;
 #define set_bit(bitboard, square) (bitboard |= (1ULL << square))
 #define remove_bit(bitboard, square) (bitboard & ~(1ULL << square))
 
-BB pawn_attacks[2][64];
-BB knight_attacks[64];
-BB king_attacks[64];
-
 // A column
 static const BB not_A_column = 18374403900871474942ULL;
 
@@ -328,20 +324,6 @@ BB mask_queen_attacks(int square, BB block)
     return attacks;
 }
 
-// generate leaper piece attacks
-void init_leapers_attacks()
-{
-    for (int square = 0; square < 64; square++)
-    {
-        pawn_attacks[WHITE][square] = mask_pawn_attacks(WHITE, Square(square));
-        pawn_attacks[BLACK][square] = mask_pawn_attacks(BLACK, Square(square));
-
-        knight_attacks[square] = mask_knight_attacks(Square(square));
-
-        king_attacks[square] = mask_king_attacks(Square(square));
-    }
-}
-
 vector<Move> generate_psuedo_moves(const Pos &pos)
 {
     std::vector<Move> moves;
@@ -405,16 +387,14 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
         pawns &= pawns - 1;
 
         Piece piece = PAWN;
-
-        // Pawn captures
-        BB captures = pawn_attacks[side][from] & enemy_side_pieces;
+        BB captures = mask_pawn_attacks(side, from) & enemy_side_pieces;
         add_moves(from, captures, piece);
 
         if (pos.enpassant_sq != NONE_SQUARE)
         {
             Square ep = pos.enpassant_sq;
 
-            if ((pawn_attacks[side][from] & (1ULL << ep)) != 0)
+            if ((captures & (1ULL << ep)) != 0)
             {
                 moves.push_back(make_move(from, ep, EP));
             }
@@ -448,7 +428,7 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
     {
         Square from = (Square)__builtin_ctzll(knights);
         knights &= knights - 1;
-        BB attacks = knight_attacks[from] & ~current_side_pieces;
+        BB attacks = mask_knight_attacks(from) & ~current_side_pieces;
         add_moves(from, attacks, KNIGHT);
     }
 
@@ -487,7 +467,7 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
     if (king)
     {
         Square from = (Square)__builtin_ctzll(king);
-        BB attacks = king_attacks[from] & ~current_side_pieces;
+        BB attacks = mask_king_attacks(from) & ~current_side_pieces;
         add_moves(from, attacks, KING);
 
         if (side == WHITE)
