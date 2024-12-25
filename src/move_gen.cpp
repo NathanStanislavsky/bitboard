@@ -569,44 +569,28 @@ std::vector<Move> generate_legal_moves(Pos &pos)
     return legalMoves;
 }
 
-uint64_t perft(Pos &pos, int depth)
+int perft(Pos &pos, int depth, bool verbose)
 {
     if (depth == 0)
-        return 1ULL;
-
-    std::vector<Move> moves = generate_legal_moves(pos);
-    if (moves.empty())
     {
-        return 1ULL; 
+        return 1;
     }
 
-    uint64_t nodes = 0ULL;
-
-    for (Move m : moves)
+    vector<Move> validMoves = generate_legal_moves(pos);
+    int count = 0;
+    // iterate through valid Moves
+    for (int i = 0; i < validMoves.size(); i++)
     {
-        pos.do_move(m); 
-        nodes += perft(pos, depth - 1);
+
+        pos.do_move(validMoves[i]);
+
+        int result = perft(pos, depth - 1, false);
+        if (verbose)
+        {
+            cout << move_to_string(validMoves[i]) + " " + to_string(result) << endl;
+        }
+        count += result;
         pos.undo_move();
     }
-
-    return nodes;
-}
-
-uint64_t perft_divide(Pos &pos, int depth)
-{
-    std::vector<Move> moves = generate_legal_moves(pos);
-    uint64_t totalNodes = 0ULL;
-
-    for (Move m : moves)
-    {
-        pos.do_move(m);
-        uint64_t nodes = perft(pos, depth - 1);
-        pos.undo_move();
-
-        std::cout << move_to_string(m) << ": " << nodes << "\n";
-        totalNodes += nodes;
-    }
-
-    std::cout << "Total: " << totalNodes << "\n";
-    return totalNodes;
+    return count;
 }

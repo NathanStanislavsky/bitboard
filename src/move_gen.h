@@ -17,5 +17,4 @@ BB mask_queen_attacks(int square, BB block);
 std::vector<Move> generate_psuedo_moves(const Pos &pos);
 std::vector<Move> generate_legal_moves(Pos &pos);
 
-uint64_t perft(Pos &pos, int depth);
-uint64_t perft_divide(Pos &pos, int depth);
+int perft(Pos &pos, int depth, bool verbose);
