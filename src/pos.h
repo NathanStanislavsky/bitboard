@@ -46,4 +46,6 @@ public:
     bool is_square_attacked(Square sq, Color side) const;
 
     bool is_in_check(Color side) const;
+
+    void debug_bitboards();
 };

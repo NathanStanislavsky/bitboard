@@ -7,7 +7,7 @@ using namespace std;
 
 #define get_bit(bitboard, square) (bitboard & (1ULL << square))
 #define set_bit(bitboard, square) (bitboard |= (1ULL << square))
-#define remove_bit(bitboard, square) (get_bit(bitboard, square) ? bitboard ^= (1ULL << square) : 0)
+#define remove_bit(bitboard, square) (bitboard & ~(1ULL << square))
 
 BB pawn_attacks[2][64];
 BB knight_attacks[64];
@@ -592,25 +592,20 @@ std::vector<Move> generate_legal_moves(Pos &pos)
 
 uint64_t perft(Pos &pos, int depth)
 {
-    // Base case: if depth == 0, we are at a leaf node (the current position).
     if (depth == 0)
         return 1ULL;
 
-    // Generate all legal moves at this position
     std::vector<Move> moves = generate_legal_moves(pos);
     if (moves.empty())
     {
-        // No moves at this position, so for depth > 0, it counts as 1 leaf as well
-        // (or 0 if you're strictly counting continuations).
         return 1ULL; 
     }
 
     uint64_t nodes = 0ULL;
 
-    // For each legal move, recurse
     for (Move m : moves)
     {
-        pos.do_move(m);
+        pos.do_move(m); 
         nodes += perft(pos, depth - 1);
         pos.undo_move();
     }

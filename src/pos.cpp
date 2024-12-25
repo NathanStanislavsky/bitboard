@@ -80,8 +80,9 @@ void Pos::add_piece(Color color, Piece piece, Square square)
 
 void Pos::remove_piece(Color color, Piece piece, Square square)
 {
-    colors_bbs[color] &= ~(1ULL << square);
-    pieces_bbs[piece] &= ~(1ULL << square);
+    BB mask = ~(1ULL << square);
+    colors_bbs[color] &= mask;
+    pieces_bbs[piece] &= mask;
 }
 
 void Pos::print_board()
@@ -135,19 +136,22 @@ Specific_Piece Pos::specific_piece_on(Square square)
 
 void Pos::do_move(Move move)
 {
+    std::cout << "Before move:\n";
+    print_board();
+
     piece_captured_log.push_back(specific_piece_on(to_square(move)));
     castling_rights_log.push_back(cr);
     enpassant_square_log.push_back(enpassant_sq);
     move_log.push_back(move);
 
     Square from = from_square(move);
-    Square to   = to_square(move);
+    Square to = to_square(move);
 
-    Specific_Piece movedSP    = specific_piece_on(from);
-    Specific_Piece capturedSP = specific_piece_on(to); 
-    Color sideMoving          = turn;
-    Piece movedPiece          = specific_piece_to_piece(movedSP);
-    Piece capturedPiece       = specific_piece_to_piece(capturedSP);
+    Specific_Piece movedSP = specific_piece_on(from);
+    Specific_Piece capturedSP = specific_piece_on(to);
+    Color sideMoving = turn;
+    Piece movedPiece = specific_piece_to_piece(movedSP);
+    Piece capturedPiece = specific_piece_to_piece(capturedSP);
 
     // if the king or rook moves, we lose castling rights
     if (movedSP == WHITE_KING)
@@ -231,7 +235,7 @@ void Pos::do_move(Move move)
     {
         add_piece(sideMoving, movedPiece, to);
         int direction = (turn == WHITE) ? 1 : -1;
-        Square capSq  = Square(to + direction * 8); 
+        Square capSq = Square(to + direction * 8);
         remove_piece(color_on(capSq), piece_on(capSq), capSq);
     }
     else if (is_king_castle(move))
@@ -252,6 +256,9 @@ void Pos::do_move(Move move)
     }
 
     turn = Color(!turn);
+
+    std::cout << "After move:\n";
+    print_board();
 }
 
 void Pos::undo_move()
@@ -273,14 +280,14 @@ void Pos::undo_move()
     piece_captured_log.pop_back();
 
     Square from = from_square(move);
-    Square to   = to_square(move);
+    Square to = to_square(move);
 
     // Flip turn back
     turn = Color(!turn);
 
     // Identify what piece moved (on the board after 'do_move')
     Specific_Piece movedSP = specific_piece_on(to);
-    Piece movedPiece       = specific_piece_to_piece(movedSP);
+    Piece movedPiece = specific_piece_to_piece(movedSP);
 
     // Reverse the special moves
     if (is_promotion(move))
@@ -438,8 +445,14 @@ bool Pos::is_square_attacked(Square sq, Color side) const
 bool Pos::is_in_check(Color side) const
 {
     Square king_location = static_cast<Square>(
-        __builtin_ctzll(pieces_bbs[KING] & colors_bbs[side])
-    );
+        __builtin_ctzll(pieces_bbs[KING] & colors_bbs[side]));
 
     return is_square_attacked(king_location, Color(!side));
+}
+
+void Pos::debug_bitboards()
+{
+    std::cout << "White pieces: " << std::bitset<64>(colors_bbs[WHITE]) << "\n";
+    std::cout << "Black pieces: " << std::bitset<64>(colors_bbs[BLACK]) << "\n";
+    std::cout << "Pawns: " << std::bitset<64>(pieces_bbs[PAWN]) << "\n";
 }
