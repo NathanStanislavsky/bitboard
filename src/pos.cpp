@@ -136,22 +136,21 @@ Specific_Piece Pos::specific_piece_on(Square square)
 
 void Pos::do_move(Move move)
 {
-    std::cout << "Before move:\n";
-    print_board();
-
-    piece_captured_log.push_back(specific_piece_on(to_square(move)));
+    // Save current castling rights, en-passant square, and the move
     castling_rights_log.push_back(cr);
     enpassant_square_log.push_back(enpassant_sq);
     move_log.push_back(move);
 
+    // We'll push S_EMPTY for now; update only if there's a real capture
+    piece_captured_log.push_back(S_EMPTY);
+
     Square from = from_square(move);
     Square to = to_square(move);
-
-    Specific_Piece movedSP = specific_piece_on(from);
-    Specific_Piece capturedSP = specific_piece_on(to);
     Color sideMoving = turn;
+
+    // Identify the piece being moved
+    Specific_Piece movedSP = specific_piece_on(from);
     Piece movedPiece = specific_piece_to_piece(movedSP);
-    Piece capturedPiece = specific_piece_to_piece(capturedSP);
 
     // if the king or rook moves, we lose castling rights
     if (movedSP == WHITE_KING)
@@ -187,27 +186,22 @@ void Pos::do_move(Move move)
         }
     }
     // Check if a rook is captured and update castling rights
-    if (capturedSP == BLACK_ROOK)
+
+    if (to == H8)
     {
-        if (to == H8)
-        {
-            cr.bkc = false;
-        }
-        else if (to == A8)
-        {
-            cr.bqc = false;
-        }
+        cr.bkc = false;
     }
-    if (capturedSP == WHITE_ROOK)
+    else if (to == A8)
     {
-        if (to == H1)
-        {
-            cr.wkc = false;
-        }
-        else if (to == A1)
-        {
-            cr.wqc = false;
-        }
+        cr.bqc = false;
+    }
+    if (to == H1)
+    {
+        cr.wkc = false;
+    }
+    else if (to == A1)
+    {
+        cr.wqc = false;
     }
 
     if (is_double_pawn_push(move))
@@ -221,10 +215,16 @@ void Pos::do_move(Move move)
 
     remove_piece(sideMoving, movedPiece, from);
 
-    if (!is_enpassant(move) && capturedSP != S_EMPTY)
+    if (!is_enpassant(move) && color_on(to) == Color(!sideMoving))
     {
-        Color captureColor = Color(!sideMoving);
-        remove_piece(captureColor, capturedPiece, to);
+        // The piece on 'to' belongs to the opponent, so it's a true capture
+        Specific_Piece actualCaptured = specific_piece_on(to);
+
+        // Put that captured piece ID in the log
+        piece_captured_log.back() = actualCaptured;
+
+        // Remove it from the board
+        remove_piece(Color(!sideMoving), specific_piece_to_piece(actualCaptured), to);
     }
 
     if (is_promotion(move))
@@ -256,9 +256,6 @@ void Pos::do_move(Move move)
     }
 
     turn = Color(!turn);
-
-    std::cout << "After move:\n";
-    print_board();
 }
 
 void Pos::undo_move()
@@ -348,6 +345,7 @@ void Pos::undo_move()
         // If there was a capture, restore it on 'to'
         if (capturedSP != S_EMPTY)
         {
+            cout << "Captured piece: " << specific_piece_to_char(capturedSP) << endl;
             add_piece(Color(!turn), specific_piece_to_piece(capturedSP), to);
         }
     }
