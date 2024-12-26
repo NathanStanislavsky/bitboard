@@ -2,6 +2,7 @@
 #include "types.h"
 #include <vector>
 #include <iostream>
+#include <cassert>
 
 using namespace std;
 
@@ -344,36 +345,44 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
     BB king = pos.pieces_bbs[KING] & pos.colors_bbs[side];
 
     auto add_moves = [&](Square from, BB targets, Piece piece)
+{
+    while (targets)
     {
-        while (targets)
+        int to = __builtin_ctzll(targets);
+        targets &= targets - 1;
+
+        MoveFlag flag = QUIET;
+        if (bb_has(enemy_side_pieces, Square(to)))
         {
-            int to = __builtin_ctzll(targets);
-            targets &= targets - 1;
-
-            MoveFlag flag = QUIET;
-            if (bb_has(enemy_side_pieces, Square(to)))
-            {
-                flag = CAPTURE;
-            }
-
-            // Handle promotions if this is a pawn moving to last rank
-            if (piece == PAWN)
-            {
-                int rank = to / 8;
-                if ((side == WHITE && rank == 7) || (side == BLACK && rank == 0))
-                {
-                    moves.push_back(generate_move(from, Square(to), (MoveFlag)Q_PROM | (flag == CAPTURE ? CAPTURE : 0)));
-                    moves.push_back(generate_move(from, Square(to), (MoveFlag)R_PROM | (flag == CAPTURE ? CAPTURE : 0)));
-                    moves.push_back(generate_move(from, Square(to), (MoveFlag)B_PROM | (flag == CAPTURE ? CAPTURE : 0)));
-                    moves.push_back(generate_move(from, Square(to), (MoveFlag)N_PROM | (flag == CAPTURE ? CAPTURE : 0)));
-                    continue;
-                }
-            }
-
-            // Normal move
-            moves.push_back(generate_move(from, Square(to), flag));
+            flag = CAPTURE;
         }
-    };
+
+        // Handle promotions if this is a pawn moving to last rank
+        if (piece == PAWN)
+        {
+            int rank = to / 8;
+            if ((side == WHITE && rank == 7) || (side == BLACK && rank == 0))
+            {
+                // Correctly parenthesize to ensure proper flag combination
+                MoveFlag promotionFlags[] = {
+                    (MoveFlag)(Q_PROM | ((flag == CAPTURE) ? CAPTURE : 0)),
+                    (MoveFlag)(R_PROM | ((flag == CAPTURE) ? CAPTURE : 0)),
+                    (MoveFlag)(B_PROM | ((flag == CAPTURE) ? CAPTURE : 0)),
+                    (MoveFlag)(N_PROM | ((flag == CAPTURE) ? CAPTURE : 0))
+                };
+
+                for (auto promotionFlag : promotionFlags)
+                {
+                    moves.push_back(generate_move(from, Square(to), promotionFlag));
+                }
+                continue;
+            }
+        }
+
+        // Normal move
+        moves.push_back(generate_move(from, Square(to), flag));
+    }
+};
 
     // Generate Pawn Moves
     // -------------------
@@ -396,7 +405,7 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
             Square ep = pos.enpassant_sq;
 
             if ((pawn_mask & (1ULL << ep)) != 0)
-            {
+            {   
                 moves.push_back(generate_move(from, ep, EP));
             }
         }
@@ -563,7 +572,7 @@ std::vector<Move> generate_legal_moves(Pos &pos)
         // std::cout << "Before do move:\n";
         // pos.print_board();  
         // cout << move_to_string(m) << endl;
-        // cout << "Turn: " << pos.turn << endl;
+        // cout << m << endl;
 
         pos.do_move(m);
 
@@ -600,7 +609,7 @@ int perft(Pos &pos, int depth, bool verbose)
     for (int i = 0; i < validMoves.size(); i++)
     {
         pos.do_move(validMoves[i]);
-
+        // cout << "Move: " << move_to_string(validMoves[i]) << endl;
         int result = perft(pos, depth - 1, false);
         if (verbose)
         {

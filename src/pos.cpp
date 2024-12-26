@@ -68,7 +68,6 @@ Pos::Pos(string fen)
     if (fen[0] != '-')
     {
         enpassant_sq = string_to_square(fen.substr(0, 2));
-        cout << enpassant_sq << endl;
     }
 };
 
@@ -215,7 +214,20 @@ void Pos::do_move(Move move)
 
     remove_piece(sideMoving, movedPiece, from);
 
-    if (!is_enpassant(move) && color_on(to) == Color(!sideMoving))
+    if (is_enpassant(move))
+    {
+        // Log the captured pawn before removing it
+        int direction = (turn == WHITE) ? 1 : -1;
+        Square capSq = Square(to + direction * 8);
+        Specific_Piece actualCaptured = specific_piece_on(capSq);
+        piece_captured_log.back() = actualCaptured;
+
+        // Remove the captured pawn
+        remove_piece(Color(!sideMoving), specific_piece_to_piece(actualCaptured), capSq);
+
+        // Move the pawn to the 'to' square
+        add_piece(sideMoving, movedPiece, to);
+    } else if (color_on(to) == Color(!sideMoving))
     {
         // The piece on 'to' belongs to the opponent, so it's a true capture
         Specific_Piece actualCaptured = specific_piece_on(to);
@@ -256,6 +268,7 @@ void Pos::do_move(Move move)
     }
 
     turn = Color(!turn);
+
 }
 
 void Pos::undo_move()
