@@ -10,7 +10,9 @@ int main()
     Pos pos("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     pos.print_board();
 
-    cout << perft(pos, 5, true) << endl;
+    cout << perft(pos, 3, true) << endl;
     
+    
+
     return 0;
 }

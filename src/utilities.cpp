@@ -165,20 +165,20 @@ void print_bitboard(BB bb)
 
 void testMasks()
 {
-    // 1) White Pawn attacks from E2
+    // 1) White Pawn attacks
     {
-        Square sq = E2; // 12 in 0-based indexing
+        Square sq = E4; 
         BB attacks = mask_pawn_attacks(WHITE, sq);
-        std::cout << "White Pawn attacks from E2:\n";
+        std::cout << "White Pawn attacks from E4:\n";
         std::cout << attacks << std::endl;
         print_bitboard(attacks);
     }
 
-    // 2) Black Pawn attacks from D7
+    // 2) Black Pawn attacks
     {
-        Square sq = D7; // 51 in 0-based indexing
+        Square sq = E5; 
         BB attacks = mask_pawn_attacks(BLACK, sq);
-        std::cout << "Black Pawn attacks from D7:\n";
+        std::cout << "Black Pawn attacks from E5:\n";
         std::cout << attacks << std::endl;
         print_bitboard(attacks);
     }

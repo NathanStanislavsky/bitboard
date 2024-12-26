@@ -77,33 +77,34 @@ BB mask_pawn_attacks(Color side, Square square)
     // set piece on board
     set_bit(bitboard, square);
 
-    if (!side)
+    if (side == WHITE)
     {
-        if ((bitboard >> 7) & not_H_column)
+        // White pawn attacks: Up-Left (+7), Up-Right (+9)
+        if ((bitboard << 7) & not_H_column)
         {
-            // attack south west
-            attacks |= (bitboard >> 7);
-        }
-
-        if ((bitboard >> 9) & not_A_column)
-        {
-            // attack south east
-            attacks |= (bitboard >> 9);
-        }
-    }
-    // black pawns
-    else
-    {
-        if ((bitboard << 7) & not_A_column)
-        {
-            // attack north east
+            // attack up-left
             attacks |= (bitboard << 7);
         }
 
-        if ((bitboard << 9) & not_H_column)
+        if ((bitboard << 9) & not_A_column)
         {
-            // attack north west
+            // attack up-right
             attacks |= (bitboard << 9);
+        }
+    }
+    else // BLACK
+    {
+        // Black pawn attacks: Down-Left (-9), Down-Right (-7)
+        if ((bitboard >> 9) & not_H_column)
+        {
+            // attack down-left
+            attacks |= (bitboard >> 9);
+        }
+
+        if ((bitboard >> 7) & not_A_column)
+        {
+            // attack down-right
+            attacks |= (bitboard >> 7);
         }
     }
 
