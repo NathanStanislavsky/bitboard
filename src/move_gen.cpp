@@ -362,16 +362,16 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
                 int rank = to / 8;
                 if ((side == WHITE && rank == 7) || (side == BLACK && rank == 0))
                 {
-                    moves.push_back(make_move(from, Square(to), (MoveFlag)Q_PROM | (flag == CAPTURE ? CAPTURE : 0)));
-                    moves.push_back(make_move(from, Square(to), (MoveFlag)R_PROM | (flag == CAPTURE ? CAPTURE : 0)));
-                    moves.push_back(make_move(from, Square(to), (MoveFlag)B_PROM | (flag == CAPTURE ? CAPTURE : 0)));
-                    moves.push_back(make_move(from, Square(to), (MoveFlag)N_PROM | (flag == CAPTURE ? CAPTURE : 0)));
+                    moves.push_back(generate_move(from, Square(to), (MoveFlag)Q_PROM | (flag == CAPTURE ? CAPTURE : 0)));
+                    moves.push_back(generate_move(from, Square(to), (MoveFlag)R_PROM | (flag == CAPTURE ? CAPTURE : 0)));
+                    moves.push_back(generate_move(from, Square(to), (MoveFlag)B_PROM | (flag == CAPTURE ? CAPTURE : 0)));
+                    moves.push_back(generate_move(from, Square(to), (MoveFlag)N_PROM | (flag == CAPTURE ? CAPTURE : 0)));
                     continue;
                 }
             }
 
             // Normal move
-            moves.push_back(make_move(from, Square(to), flag));
+            moves.push_back(generate_move(from, Square(to), flag));
         }
     };
 
@@ -397,7 +397,7 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
             if ((pawn_mask & (1ULL << ep)) != 0)
             {
-                moves.push_back(make_move(from, ep, EP));
+                moves.push_back(generate_move(from, ep, EP));
             }
         }
 
@@ -408,7 +408,7 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
             // Single push
             Square to_s = Square(to_int);
             // Promotion handled in add_moves if last rank
-            moves.push_back(make_move(from, to_s));
+            moves.push_back(generate_move(from, to_s));
 
             // Double push
             int rank = from / 8;
@@ -417,7 +417,7 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
                 int to_int2 = from + 2 * forward;
                 if (to_int2 >= A1 && to_int2 <= H8 && bb_has(empty_squares, Square(to_int2)))
                 {
-                    moves.push_back(make_move(from, Square(to_int2), DOUBLE_PAWN_PUSH));
+                    moves.push_back(generate_move(from, Square(to_int2), DOUBLE_PAWN_PUSH));
                 }
             }
         }
@@ -487,7 +487,7 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
                 if (squaresEmpty && notAttacked)
                 {
-                    moves.push_back(make_move(E1, G1, KING_CASTLE));
+                    moves.push_back(generate_move(E1, G1, KING_CASTLE));
                 }
             }
 
@@ -505,7 +505,7 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
                 if (squaresEmpty && notAttacked)
                 {
-                    moves.push_back(make_move(E1, C1, QUEEN_CASTLE));
+                    moves.push_back(generate_move(E1, C1, QUEEN_CASTLE));
                 }
             }
         }
@@ -525,7 +525,7 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
                 if (squaresEmpty && notAttacked)
                 {
-                    moves.push_back(make_move(E8, G8, KING_CASTLE));
+                    moves.push_back(generate_move(E8, G8, KING_CASTLE));
                 }
             }
 
@@ -543,7 +543,7 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
                 if (squaresEmpty && notAttacked)
                 {
-                    moves.push_back(make_move(E8, C8, QUEEN_CASTLE));
+                    moves.push_back(generate_move(E8, C8, QUEEN_CASTLE));
                 }
             }
         }

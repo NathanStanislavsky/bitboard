@@ -451,9 +451,3 @@ bool Pos::is_in_check(Color side) const
     return is_square_attacked(king_location, Color(!side));
 }
 
-void Pos::debug_bitboards()
-{
-    std::cout << "White pieces: " << std::bitset<64>(colors_bbs[WHITE]) << "\n";
-    std::cout << "Black pieces: " << std::bitset<64>(colors_bbs[BLACK]) << "\n";
-    std::cout << "Pawns: " << std::bitset<64>(pieces_bbs[PAWN]) << "\n";
-}

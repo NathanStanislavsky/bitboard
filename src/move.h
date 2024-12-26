@@ -17,7 +17,7 @@ Square from_square(Move move);
 Piece promotion_piece(Move move);
 Square capture_square(Move move);
 
-inline Move make_move(Square from, Square to, MoveFlag flags = QUIET)
+inline Move generate_move(Square from, Square to, MoveFlag flags = QUIET)
 {
     // from is shifted left by 6, to is in bits 0–5, flags in bits 12–15
     return static_cast<Move>((static_cast<int>(from) << 6) 
