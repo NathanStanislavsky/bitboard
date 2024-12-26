@@ -345,7 +345,7 @@ void Pos::undo_move()
         // If there was a capture, restore it on 'to'
         if (capturedSP != S_EMPTY)
         {
-            cout << "Captured piece: " << specific_piece_to_char(capturedSP) << endl;
+            // cout << "Captured piece: " << specific_piece_to_char(capturedSP) << endl;
             add_piece(Color(!turn), specific_piece_to_piece(capturedSP), to);
         }
     }

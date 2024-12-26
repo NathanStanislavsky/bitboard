@@ -558,28 +558,28 @@ std::vector<Move> generate_legal_moves(Pos &pos)
 
     for (Move m : pseudoMoves)
     {
-        std::cout << "Before do move:\n";
-        pos.print_board();  
-        cout << move_to_string(m) << endl;
-        cout << "Turn: " << pos.turn << endl;
+        // std::cout << "Before do move:\n";
+        // pos.print_board();  
+        // cout << move_to_string(m) << endl;
+        // cout << "Turn: " << pos.turn << endl;
 
         pos.do_move(m);
 
-        std::cout << "After do move:\n";
-        pos.print_board();  
+        // std::cout << "After do move:\n";
+        // pos.print_board();  
 
         if (!pos.is_in_check(pos.turn))
         {
             legalMoves.push_back(m);
         }
 
-        std::cout << "Before undo move:\n";
-        pos.print_board();  
+        // std::cout << "Before undo move:\n";
+        // pos.print_board();  
 
         pos.undo_move();
 
-        std::cout << "After undo move:\n";
-        pos.print_board();  
+        // std::cout << "After undo move:\n";
+        // pos.print_board();  
     }
 
     return legalMoves;
