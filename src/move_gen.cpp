@@ -387,14 +387,15 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
         pawns &= pawns - 1;
 
         Piece piece = PAWN;
-        BB captures = mask_pawn_attacks(side, from) & enemy_side_pieces;
+        BB pawn_mask = mask_pawn_attacks(side, from);
+        BB captures = pawn_mask & enemy_side_pieces;
         add_moves(from, captures, piece);
 
         if (pos.enpassant_sq != NONE_SQUARE)
         {
             Square ep = pos.enpassant_sq;
 
-            if ((captures & (1ULL << ep)) != 0)
+            if ((pawn_mask & (1ULL << ep)) != 0)
             {
                 moves.push_back(make_move(from, ep, EP));
             }
@@ -569,7 +570,7 @@ std::vector<Move> generate_legal_moves(Pos &pos)
         // std::cout << "After do move:\n";
         // pos.print_board();  
 
-        if (!pos.is_in_check(pos.turn))
+        if (!pos.is_in_check(Color(!pos.turn)))
         {
             legalMoves.push_back(m);
         }
