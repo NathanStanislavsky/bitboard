@@ -2,6 +2,7 @@
 
 #include "types.h"
 #include "utilities.h"
+#include <cassert>
 
 MoveFlag flags(Move move);
 
@@ -17,10 +18,10 @@ Square from_square(Move move);
 Piece promotion_piece(Move move);
 Square capture_square(Move move);
 
-inline Move make_move(Square from, Square to, MoveFlag flags = QUIET)
+inline Move generate_move(Square from, Square to, MoveFlag flags = QUIET)
 {
-    // from is shifted left by 6, to is in bits 0–5, flags in bits 12–15
-    return static_cast<Move>((static_cast<int>(from) << 6) 
-                           | (static_cast<int>(to) & 0x3F) 
-                           | (static_cast<int>(flags) << 12));
+    assert(from >= 0 && from < 64);
+    assert(to >= 0 && to < 64);
+    assert(flags >= QUIET && flags <= Q_PROM_CAPTURE);
+    return ((flags << 12) | (from << 6) | to);
 }

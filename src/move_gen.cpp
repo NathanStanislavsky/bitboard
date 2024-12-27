@@ -2,16 +2,13 @@
 #include "types.h"
 #include <vector>
 #include <iostream>
+#include <cassert>
 
 using namespace std;
 
 #define get_bit(bitboard, square) (bitboard & (1ULL << square))
 #define set_bit(bitboard, square) (bitboard |= (1ULL << square))
-#define remove_bit(bitboard, square) (get_bit(bitboard, square) ? bitboard ^= (1ULL << square) : 0)
-
-BB pawn_attacks[2][64];
-BB knight_attacks[64];
-BB king_attacks[64];
+#define remove_bit(bitboard, square) (bitboard & ~(1ULL << square))
 
 // A column
 static const BB not_A_column = 18374403900871474942ULL;
@@ -81,33 +78,33 @@ BB mask_pawn_attacks(Color side, Square square)
     // set piece on board
     set_bit(bitboard, square);
 
-    // white pawns
-    if (!side)
+    if (side == WHITE)
     {
-        // White pawns capturing left (up-left):
-        if ((bitboard << 7) & not_A_column)
+        // White pawn attacks: Up-Left (+7), Up-Right (+9)
+        if ((bitboard << 7) & not_H_column)
         {
+            // attack up-left
             attacks |= (bitboard << 7);
         }
 
-        // White pawns capturing right (up-right):
-        if ((bitboard << 9) & not_H_column)
+        if ((bitboard << 9) & not_A_column)
         {
+            // attack up-right
             attacks |= (bitboard << 9);
         }
     }
-    // black pawns
-    else
+    else // BLACK
     {
-        // Black capturing left (down-left) => >> 9
-        if ((bitboard >> 9) & not_A_column)
+        // Black pawn attacks: Down-Left (-9), Down-Right (-7)
+        if ((bitboard >> 9) & not_H_column)
         {
+            // attack down-left
             attacks |= (bitboard >> 9);
         }
 
-        // Black capturing right (down-right) => >> 7
-        if ((bitboard >> 7) & not_H_column)
+        if ((bitboard >> 7) & not_A_column)
         {
+            // attack down-right
             attacks |= (bitboard >> 7);
         }
     }
@@ -328,20 +325,6 @@ BB mask_queen_attacks(int square, BB block)
     return attacks;
 }
 
-// generate leaper piece attacks
-void init_leapers_attacks()
-{
-    for (int square = 0; square < 64; square++)
-    {
-        pawn_attacks[WHITE][square] = mask_pawn_attacks(WHITE, Square(square));
-        pawn_attacks[BLACK][square] = mask_pawn_attacks(BLACK, Square(square));
-
-        knight_attacks[square] = mask_knight_attacks(Square(square));
-
-        king_attacks[square] = mask_king_attacks(Square(square));
-    }
-}
-
 vector<Move> generate_psuedo_moves(const Pos &pos)
 {
     std::vector<Move> moves;
@@ -380,16 +363,23 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
                 int rank = to / 8;
                 if ((side == WHITE && rank == 7) || (side == BLACK && rank == 0))
                 {
-                    moves.push_back(make_move(from, Square(to), (MoveFlag)Q_PROM | (flag == CAPTURE ? CAPTURE : 0)));
-                    moves.push_back(make_move(from, Square(to), (MoveFlag)R_PROM | (flag == CAPTURE ? CAPTURE : 0)));
-                    moves.push_back(make_move(from, Square(to), (MoveFlag)B_PROM | (flag == CAPTURE ? CAPTURE : 0)));
-                    moves.push_back(make_move(from, Square(to), (MoveFlag)N_PROM | (flag == CAPTURE ? CAPTURE : 0)));
+                    // Correctly parenthesize to ensure proper flag combination
+                    MoveFlag promotionFlags[] = {
+                        (MoveFlag)(Q_PROM | ((flag == CAPTURE) ? CAPTURE : 0)),
+                        (MoveFlag)(R_PROM | ((flag == CAPTURE) ? CAPTURE : 0)),
+                        (MoveFlag)(B_PROM | ((flag == CAPTURE) ? CAPTURE : 0)),
+                        (MoveFlag)(N_PROM | ((flag == CAPTURE) ? CAPTURE : 0))};
+
+                    for (auto promotionFlag : promotionFlags)
+                    {
+                        moves.push_back(generate_move(from, Square(to), promotionFlag));
+                    }
                     continue;
                 }
             }
 
             // Normal move
-            moves.push_back(make_move(from, Square(to), flag));
+            moves.push_back(generate_move(from, Square(to), flag));
         }
     };
 
@@ -405,18 +395,17 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
         pawns &= pawns - 1;
 
         Piece piece = PAWN;
-
-        // Pawn captures
-        BB captures = pawn_attacks[side][from] & enemy_side_pieces;
+        BB pawn_mask = mask_pawn_attacks(side, from);
+        BB captures = pawn_mask & enemy_side_pieces;
         add_moves(from, captures, piece);
 
         if (pos.enpassant_sq != NONE_SQUARE)
         {
             Square ep = pos.enpassant_sq;
 
-            if ((pawn_attacks[side][from] & (1ULL << ep)) != 0)
+            if ((pawn_mask & (1ULL << ep)) != 0)
             {
-                moves.push_back(make_move(from, ep, EP));
+                moves.push_back(generate_move(from, ep, EP));
             }
         }
 
@@ -424,19 +413,26 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
         int to_int = from + forward;
         if (to_int >= A1 && to_int <= H8 && bb_has(empty_squares, Square(to_int)))
         {
-            // Single push
+            BB single_push = 1ULL << to_int;
+            int to_rank = to_int / 8;
+            int from_rank = from / 8;
             Square to_s = Square(to_int);
-            // Promotion handled in add_moves if last rank
-            moves.push_back(make_move(from, to_s));
+
+            if ((side == WHITE && to_rank == 7) || (side == BLACK && to_rank == 0)) {
+                // promotion single push
+                add_moves(from, single_push, piece);
+            } else {
+                // normal single push
+                moves.push_back(generate_move(from, to_s));
+            }
 
             // Double push
-            int rank = from / 8;
-            if (rank == start_rank)
+            if (from_rank == start_rank)
             {
                 int to_int2 = from + 2 * forward;
                 if (to_int2 >= A1 && to_int2 <= H8 && bb_has(empty_squares, Square(to_int2)))
                 {
-                    moves.push_back(make_move(from, Square(to_int2), DOUBLE_PAWN_PUSH));
+                    moves.push_back(generate_move(from, Square(to_int2), DOUBLE_PAWN_PUSH));
                 }
             }
         }
@@ -448,7 +444,7 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
     {
         Square from = (Square)__builtin_ctzll(knights);
         knights &= knights - 1;
-        BB attacks = knight_attacks[from] & ~current_side_pieces;
+        BB attacks = mask_knight_attacks(from) & ~current_side_pieces;
         add_moves(from, attacks, KNIGHT);
     }
 
@@ -487,7 +483,7 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
     if (king)
     {
         Square from = (Square)__builtin_ctzll(king);
-        BB attacks = king_attacks[from] & ~current_side_pieces;
+        BB attacks = mask_king_attacks(from) & ~current_side_pieces;
         add_moves(from, attacks, KING);
 
         if (side == WHITE)
@@ -506,7 +502,7 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
                 if (squaresEmpty && notAttacked)
                 {
-                    moves.push_back(make_move(E1, G1, KING_CASTLE));
+                    moves.push_back(generate_move(E1, G1, KING_CASTLE));
                 }
             }
 
@@ -524,7 +520,7 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
                 if (squaresEmpty && notAttacked)
                 {
-                    moves.push_back(make_move(E1, C1, QUEEN_CASTLE));
+                    moves.push_back(generate_move(E1, C1, QUEEN_CASTLE));
                 }
             }
         }
@@ -544,7 +540,7 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
                 if (squaresEmpty && notAttacked)
                 {
-                    moves.push_back(make_move(E8, G8, KING_CASTLE));
+                    moves.push_back(generate_move(E8, G8, KING_CASTLE));
                 }
             }
 
@@ -562,7 +558,7 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
                 if (squaresEmpty && notAttacked)
                 {
-                    moves.push_back(make_move(E8, C8, QUEEN_CASTLE));
+                    moves.push_back(generate_move(E8, C8, QUEEN_CASTLE));
                 }
             }
         }
@@ -579,13 +575,54 @@ std::vector<Move> generate_legal_moves(Pos &pos)
 
     for (Move m : pseudoMoves)
     {
+        // std::cout << "Before do move:\n";
+        // pos.print_board();
+        // cout << move_to_string(m) << endl;
+        // cout << m << endl;
+
         pos.do_move(m);
-        if (!pos.is_in_check(pos.turn))
+
+        // std::cout << "After do move:\n";
+        // pos.print_board();
+
+        if (!pos.is_in_check(Color(!pos.turn)))
         {
             legalMoves.push_back(m);
         }
+
+        // std::cout << "Before undo move:\n";
+        // pos.print_board();
+
         pos.undo_move();
+
+        // std::cout << "After undo move:\n";
+        // pos.print_board();
     }
 
     return legalMoves;
+}
+
+int perft(Pos &pos, int depth, bool verbose)
+{
+    if (depth == 0)
+    {
+        return 1;
+    }
+
+    vector<Move> validMoves = generate_legal_moves(pos);
+    int count = 0;
+    // iterate through valid Moves
+    for (int i = 0; i < validMoves.size(); i++)
+    {
+        pos.do_move(validMoves[i]);
+        // cout << "Move: " << move_to_string(validMoves[i]) << endl;
+        int result = perft(pos, depth - 1, false);
+        if (verbose)
+        {
+            cout << move_to_string(validMoves[i]) + " " + to_string(result) << endl;
+        }
+        count += result;
+        pos.undo_move();
+    }
+    return count;
 }
