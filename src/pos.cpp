@@ -5,11 +5,19 @@
 #include "utilities.h"
 #include "move.h"
 #include "move_gen.h"
+#include <sstream>
 
 using namespace std;
 
 Pos::Pos(string fen)
 {
+    std::stringstream ss(fen);
+    std::string field;
+    std::vector<std::string> fields;
+    while (std::getline(ss, field, ' ')) {
+        fields.push_back(field);
+    }
+
     int fen_index = 0;
     int rank = 7;
     int file = 0;
@@ -39,38 +47,37 @@ Pos::Pos(string fen)
         }
     }
 
-    fen = fen.substr(fen_index);
-
-    turn = fen.find('w') != string::npos ? WHITE : BLACK;
-
-    if (fen.find('K') != string::npos)
-    {
-        cr.wkc = true;
-    }
-    if (fen.find('k') != string::npos)
-    {
-        cr.bkc = true;
-    }
-    if (fen.find('Q') != string::npos)
-    {
-        cr.wqc = true;
-    }
-    if (fen.find('q') != string::npos)
-    {
-        cr.bqc = true;
+    string active_color = fields[1];
+    if (active_color == "w") {
+        turn = WHITE;
+    } else if (active_color == "b") {
+        turn = BLACK;
     }
 
-    fen = fen.substr(fen.find(" ") + 1); // Move past turn
-    fen = fen.substr(fen.find(" ") + 1); // Move past castling
-
-    size_t space_pos = fen.find(" ");
-    string enpassant_field = fen.substr(0, space_pos);
-    if (enpassant_field != "-")
-    {
-        enpassant_sq = string_to_square(enpassant_field);
+    string castling_rights = fields[2];
+    for (int i = 0; i < castling_rights.size(); i++) {
+        if (castling_rights != "-") {
+            for (int i = 0; i < castling_rights.size(); i++) {
+                if (castling_rights[i] == 'K') {
+                    cr.wkc = true;
+                }
+                if (castling_rights[i] == 'Q') {
+                    cr.wqc = true;
+                } 
+                if (castling_rights[i] == 'k') {
+                    cr.bkc = true;
+                }
+                if (castling_rights[i] == 'q') {
+                    cr.bqc = true;
+                }
+            }
+        }
     }
-    else
-    {
+
+    string enpassantSq = fields[3];
+    if (enpassantSq != "-") {
+        enpassant_sq = string_to_square(enpassantSq);
+    } else {
         enpassant_sq = NONE_SQUARE;
     }
 };
