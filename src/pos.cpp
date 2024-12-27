@@ -216,9 +216,10 @@ void Pos::do_move(Move move)
 
     if (is_enpassant(move))
     {
-        // Log the captured pawn before removing it
+        // Corrected capSq calculation
         int direction = (turn == WHITE) ? 1 : -1;
-        Square capSq = Square(to + direction * 8);
+        Square capSq = Square(to - direction * 8); // Invert the direction
+
         Specific_Piece actualCaptured = specific_piece_on(capSq);
         piece_captured_log.back() = actualCaptured;
 
@@ -226,29 +227,20 @@ void Pos::do_move(Move move)
         remove_piece(Color(!sideMoving), specific_piece_to_piece(actualCaptured), capSq);
 
         // Move the pawn to the 'to' square
-        add_piece(sideMoving, movedPiece, to);
-    } else if (color_on(to) == Color(!sideMoving))
+        // add_piece(sideMoving, movedPiece, to);
+    }
+    else if (is_capture(move))
     {
-        // The piece on 'to' belongs to the opponent, so it's a true capture
+        // Handle normal captures
         Specific_Piece actualCaptured = specific_piece_on(to);
-
-        // Put that captured piece ID in the log
         piece_captured_log.back() = actualCaptured;
-
-        // Remove it from the board
         remove_piece(Color(!sideMoving), specific_piece_to_piece(actualCaptured), to);
+        // add_piece(sideMoving, movedPiece, to);
     }
 
     if (is_promotion(move))
     {
         add_piece(sideMoving, promotion_piece(move), to);
-    }
-    else if (is_enpassant(move))
-    {
-        add_piece(sideMoving, movedPiece, to);
-        int direction = (turn == WHITE) ? 1 : -1;
-        Square capSq = Square(to + direction * 8);
-        remove_piece(color_on(capSq), piece_on(capSq), capSq);
     }
     else if (is_king_castle(move))
     {
@@ -261,9 +253,10 @@ void Pos::do_move(Move move)
         add_piece(sideMoving, movedPiece, to);
         remove_piece(sideMoving, ROOK, Square(from - 4));
         add_piece(sideMoving, ROOK, Square(from - 1));
-    }
+    } 
     else
     {
+        // Handle normal non-capturing moves
         add_piece(sideMoving, movedPiece, to);
     }
 
