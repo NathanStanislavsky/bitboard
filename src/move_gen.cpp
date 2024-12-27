@@ -418,10 +418,13 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
             int from_rank = from / 8;
             Square to_s = Square(to_int);
 
-            if ((side == WHITE && to_rank == 7) || (side == BLACK && to_rank == 0)) {
+            if ((side == WHITE && to_rank == 7) || (side == BLACK && to_rank == 0))
+            {
                 // promotion single push
                 add_moves(from, single_push, piece);
-            } else {
+            }
+            else
+            {
                 // normal single push
                 moves.push_back(generate_move(from, to_s));
             }

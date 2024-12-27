@@ -167,7 +167,7 @@ void testMasks()
 {
     // 1) White Pawn attacks
     {
-        Square sq = E4; 
+        Square sq = E4;
         BB attacks = mask_pawn_attacks(WHITE, sq);
         std::cout << "White Pawn attacks from E4:\n";
         std::cout << attacks << std::endl;
@@ -176,7 +176,7 @@ void testMasks()
 
     // 2) Black Pawn attacks
     {
-        Square sq = E5; 
+        Square sq = E5;
         BB attacks = mask_pawn_attacks(BLACK, sq);
         std::cout << "Black Pawn attacks from E5:\n";
         std::cout << attacks << std::endl;
@@ -194,7 +194,7 @@ void testMasks()
     // 4) Bishop attacks from C1 on an empty board
     {
         Square sq = C1; // 2 in 0-based
-        BB block = 0ULL; 
+        BB block = 0ULL;
         BB attacks = mask_bishop_attacks(sq, block);
         std::cout << "Bishop attacks from C1 on empty board:\n";
         print_bitboard(attacks);

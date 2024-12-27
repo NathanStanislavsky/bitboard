@@ -14,7 +14,8 @@ Pos::Pos(string fen)
     std::stringstream ss(fen);
     std::string field;
     std::vector<std::string> fields;
-    while (std::getline(ss, field, ' ')) {
+    while (std::getline(ss, field, ' '))
+    {
         fields.push_back(field);
     }
 
@@ -48,26 +49,36 @@ Pos::Pos(string fen)
     }
 
     string active_color = fields[1];
-    if (active_color == "w") {
+    if (active_color == "w")
+    {
         turn = WHITE;
-    } else if (active_color == "b") {
+    }
+    else if (active_color == "b")
+    {
         turn = BLACK;
     }
 
     string castling_rights = fields[2];
-    for (int i = 0; i < castling_rights.size(); i++) {
-        if (castling_rights != "-") {
-            for (int i = 0; i < castling_rights.size(); i++) {
-                if (castling_rights[i] == 'K') {
+    for (int i = 0; i < castling_rights.size(); i++)
+    {
+        if (castling_rights != "-")
+        {
+            for (int i = 0; i < castling_rights.size(); i++)
+            {
+                if (castling_rights[i] == 'K')
+                {
                     cr.wkc = true;
                 }
-                if (castling_rights[i] == 'Q') {
+                if (castling_rights[i] == 'Q')
+                {
                     cr.wqc = true;
-                } 
-                if (castling_rights[i] == 'k') {
+                }
+                if (castling_rights[i] == 'k')
+                {
                     cr.bkc = true;
                 }
-                if (castling_rights[i] == 'q') {
+                if (castling_rights[i] == 'q')
+                {
                     cr.bqc = true;
                 }
             }
@@ -75,9 +86,12 @@ Pos::Pos(string fen)
     }
 
     string enpassantSq = fields[3];
-    if (enpassantSq != "-") {
+    if (enpassantSq != "-")
+    {
         enpassant_sq = string_to_square(enpassantSq);
-    } else {
+    }
+    else
+    {
         enpassant_sq = NONE_SQUARE;
     }
 };
@@ -259,7 +273,7 @@ void Pos::do_move(Move move)
         add_piece(sideMoving, movedPiece, to);
         remove_piece(sideMoving, ROOK, Square(from - 4));
         add_piece(sideMoving, ROOK, Square(from - 1));
-    } 
+    }
     else
     {
         // Handle normal non-capturing moves
@@ -267,7 +281,6 @@ void Pos::do_move(Move move)
     }
 
     turn = Color(!turn);
-
 }
 
 void Pos::undo_move()
@@ -462,4 +475,3 @@ bool Pos::is_in_check(Color side) const
 
     return is_square_attacked(king_location, Color(!side));
 }
-

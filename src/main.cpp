@@ -15,6 +15,6 @@ int main()
     // cout << perft(pos, 1, true) << endl;
 
     test_fens();
-    
+
     return 0;
 }
