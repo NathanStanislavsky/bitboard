@@ -60,14 +60,18 @@ Pos::Pos(string fen)
         cr.bqc = true;
     }
 
-    for (int i = 0; i < 3; i++)
-    {
-        fen = fen.substr(fen.find(" ") + 1);
-    }
+    fen = fen.substr(fen.find(" ") + 1); // Move past turn
+    fen = fen.substr(fen.find(" ") + 1); // Move past castling
 
-    if (fen[0] != '-')
+    size_t space_pos = fen.find(" ");
+    string enpassant_field = fen.substr(0, space_pos);
+    if (enpassant_field != "-")
     {
-        enpassant_sq = string_to_square(fen.substr(0, 2));
+        enpassant_sq = string_to_square(enpassant_field);
+    }
+    else
+    {
+        enpassant_sq = NONE_SQUARE;
     }
 };
 

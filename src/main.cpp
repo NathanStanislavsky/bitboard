@@ -8,7 +8,11 @@
 
 int main()
 {
-    test_fens();
+    Pos pos("r3k2r/Pppp1ppp/1b3nbN/nPB5/B1P1P3/q4N2/Pp1P2PP/R2Q1RK1 b kq - 1 1");
+
+    pos.print_board();
+
+    cout << perft(pos, 1, true) << endl;
     
     return 0;
 }
