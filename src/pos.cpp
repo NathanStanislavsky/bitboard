@@ -216,7 +216,6 @@ void Pos::do_move(Move move)
 
     if (is_enpassant(move))
     {
-        // Corrected capSq calculation
         int direction = (turn == WHITE) ? 1 : -1;
         Square capSq = Square(to - direction * 8); // Invert the direction
 
@@ -225,9 +224,6 @@ void Pos::do_move(Move move)
 
         // Remove the captured pawn
         remove_piece(Color(!sideMoving), specific_piece_to_piece(actualCaptured), capSq);
-
-        // Move the pawn to the 'to' square
-        // add_piece(sideMoving, movedPiece, to);
     }
     else if (is_capture(move))
     {
@@ -235,7 +231,6 @@ void Pos::do_move(Move move)
         Specific_Piece actualCaptured = specific_piece_on(to);
         piece_captured_log.back() = actualCaptured;
         remove_piece(Color(!sideMoving), specific_piece_to_piece(actualCaptured), to);
-        // add_piece(sideMoving, movedPiece, to);
     }
 
     if (is_promotion(move))
