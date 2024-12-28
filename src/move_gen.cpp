@@ -504,30 +504,20 @@ std::vector<Move> generate_legal_moves(Pos &pos)
     std::vector<Move> legalMoves;
     legalMoves.reserve(pseudoMoves.size());
 
+    /*
+    for every move in pseudoMoves we do the move 
+    and check if the king is in check after the move
+    */
     for (Move m : pseudoMoves)
     {
-        // std::cout << "Before do move:\n";
-        // pos.print_board();
-        // cout << move_to_string(m) << endl;
-        // cout << m << endl;
-
         pos.do_move(m);
-
-        // std::cout << "After do move:\n";
-        // pos.print_board();
 
         if (!pos.is_in_check(Color(!pos.turn)))
         {
             legalMoves.push_back(m);
         }
 
-        // std::cout << "Before undo move:\n";
-        // pos.print_board();
-
         pos.undo_move();
-
-        // std::cout << "After undo move:\n";
-        // pos.print_board();
     }
 
     return legalMoves;
@@ -541,19 +531,23 @@ int perft(Pos &pos, int depth, bool verbose)
     }
 
     vector<Move> validMoves = generate_legal_moves(pos);
+
     int count = 0;
-    // iterate through valid Moves
+
     for (int i = 0; i < validMoves.size(); i++)
     {
         pos.do_move(validMoves[i]);
-        // cout << "Move: " << move_to_string(validMoves[i]) << endl;
+
         int result = perft(pos, depth - 1, false);
+
         if (verbose)
         {
             cout << move_to_string(validMoves[i]) + " " + to_string(result) << endl;
         }
         count += result;
+
         pos.undo_move();
     }
+    
     return count;
 }

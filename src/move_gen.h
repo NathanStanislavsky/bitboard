@@ -5,7 +5,7 @@
 #include "pos.h"
 #include "utilities.h"
 
-// Generate pawn attacks
+// Masking
 BB mask_pawn_attacks(Color side, Square square);
 BB mask_knight_attacks(Square square);
 BB mask_king_attacks(Square square);
@@ -17,4 +17,5 @@ BB mask_queen_attacks(int square, BB block);
 std::vector<Move> generate_psuedo_moves(const Pos &pos);
 std::vector<Move> generate_legal_moves(Pos &pos);
 
+// Perft test
 int perft(Pos &pos, int depth, bool verbose);

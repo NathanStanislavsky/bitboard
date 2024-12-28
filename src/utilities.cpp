@@ -149,7 +149,7 @@ void print_bitboard(BB bb)
         // files go from 0 (A) to 7 (H)
         for (int file = 0; file < 8; file++)
         {
-            int squareIndex = rank * 8 + file; // e.g., 7*8 + 0 = 56 (A8)
+            int squareIndex = rank * 8 + file;
 
             if (bb & (1ULL << squareIndex))
                 std::cout << " X |";
@@ -185,7 +185,7 @@ void testMasks()
 
     // 3) Knight attacks from B1
     {
-        Square sq = B1; // 1 in 0-based
+        Square sq = B1;
         BB attacks = mask_knight_attacks(sq);
         std::cout << "Knight attacks from B1:\n";
         print_bitboard(attacks);
@@ -193,7 +193,7 @@ void testMasks()
 
     // 4) Bishop attacks from C1 on an empty board
     {
-        Square sq = C1; // 2 in 0-based
+        Square sq = C1;
         BB block = 0ULL;
         BB attacks = mask_bishop_attacks(sq, block);
         std::cout << "Bishop attacks from C1 on empty board:\n";
@@ -202,7 +202,7 @@ void testMasks()
 
     // 5) Rook attacks from A1 on an empty board
     {
-        Square sq = A1; // 0 in 0-based
+        Square sq = A1;
         BB block = 0ULL;
         BB attacks = mask_rook_attacks(sq, block);
         std::cout << "Rook attacks from A1 on empty board:\n";
@@ -211,7 +211,7 @@ void testMasks()
 
     // 6) Queen attacks from D1 on an empty board
     {
-        Square sq = D1; // 3 in 0-based
+        Square sq = D1;
         BB block = 0ULL;
         BB attacks = mask_queen_attacks(sq, block);
         std::cout << "Queen attacks from D1 on empty board:\n";
@@ -220,7 +220,7 @@ void testMasks()
 
     // 7) King attacks from E1
     {
-        Square sq = E1; // 4 in 0-based
+        Square sq = E1;
         BB attacks = mask_king_attacks(sq);
         std::cout << "King attacks from E1:\n";
         print_bitboard(attacks);

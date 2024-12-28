@@ -23,5 +23,6 @@ inline Move generate_move(Square from, Square to, MoveFlag flags = QUIET)
     assert(from >= 0 && from < 64);
     assert(to >= 0 && to < 64);
     assert(flags >= QUIET && flags <= Q_PROM_CAPTURE);
+    
     return ((flags << 12) | (from << 6) | to);
 }
