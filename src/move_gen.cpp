@@ -15,6 +15,10 @@ static const BB not_H_column = 9187201950435737471ULL;
 static const BB not_HG_column = 4557430888798830399ULL;
 static const BB not_AB_column = 18229723555195321596ULL;
 
+BB pawn_attacks[2][64];
+BB knight_attacks[64];
+BB king_attacks[64];
+
 BB mask_pawn_attacks(Color side, Square square)
 {
     BB attacks = 0ULL;
@@ -326,7 +330,7 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
         pawns &= pawns - 1;
 
         Piece piece = PAWN;
-        BB pawn_mask = mask_pawn_attacks(side, from);
+        BB pawn_mask = pawn_attacks[side][from];
 
         // captures
         BB captures = pawn_mask & enemy_side_pieces;
@@ -383,7 +387,7 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
         Square from = (Square)__builtin_ctzll(knights);
         knights &= knights - 1;
 
-        BB attacks = mask_knight_attacks(from) & ~current_side_pieces;
+        BB attacks = knight_attacks[from] & ~current_side_pieces;
         add_moves(from, attacks, KNIGHT);
     }
 
@@ -424,7 +428,7 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
         Square from = (Square)__builtin_ctzll(king);
 
         // normal moves
-        BB attacks = mask_king_attacks(from) & ~current_side_pieces;
+        BB attacks = king_attacks[from] & ~current_side_pieces;
         add_moves(from, attacks, KING);
 
         // Castling

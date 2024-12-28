@@ -16,9 +16,9 @@ BB mask_queen_attacks(int square, BB block);
 void init_leapers_attacks();
 
 // lookup tables for leaper pieces
-BB pawn_attacks[2][64];
-BB knight_attacks[64];
-BB king_attacks[64];
+extern BB pawn_attacks[2][64];
+extern BB knight_attacks[64];
+extern BB king_attacks[64];
 
 // Move generation
 std::vector<Move> generate_psuedo_moves(const Pos &pos);
