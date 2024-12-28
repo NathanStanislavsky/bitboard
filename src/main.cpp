@@ -5,16 +5,20 @@
 #include "move.h"
 #include "types.h"
 #include "test.h"
+#include "timer.h"
 
 int main()
 {
-    // Pos pos("r3k2r/Pppp1ppp/1b3nbN/nPB5/B1P1P3/q4N2/Pp1P2PP/R2Q1RK1 b kq - 1 1");
+    Pos pos("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    pos.print_board();
 
-    // pos.print_board();
+    Timestamp start = get_current_ms();
 
-    // cout << perft(pos, 1, true) << endl;
+    cout << perft(pos, 6, true) << endl;
 
-    test_fens();
+    print_time_diff(start);
+
+    // test_fens();
 
     return 0;
 }
