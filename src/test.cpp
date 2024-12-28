@@ -40,7 +40,11 @@ void test_fens()
 
         pos.print_board();
 
+        Timestamp start = get_current_ms();
+
         int result = perft(pos, test.depth, true);
+
+        print_time_diff(start);
 
         if (result == test.expected)
         {
