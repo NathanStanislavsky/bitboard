@@ -165,7 +165,7 @@ void Pos::do_move(Move move)
     enpassant_square_log.push_back(enpassant_sq);
     move_log.push_back(move);
 
-    // We'll push S_EMPTY for now; update only if there's a real capture
+    // We'll push S_EMPTY for now and update only if there's a real capture
     piece_captured_log.push_back(S_EMPTY);
 
     Square from = from_square(move);
@@ -209,8 +209,8 @@ void Pos::do_move(Move move)
             cr.bqc = false;
         }
     }
-    // Check if a rook is captured and update castling rights
 
+    // Check if a rook is captured and update castling rights
     if (to == H8)
     {
         cr.bkc = false;
@@ -242,7 +242,7 @@ void Pos::do_move(Move move)
     if (is_enpassant(move))
     {
         int direction = (turn == WHITE) ? 1 : -1;
-        Square capSq = Square(to - direction * 8); // Invert the direction
+        Square capSq = Square(to - direction * 8);
 
         Specific_Piece actualCaptured = specific_piece_on(capSq);
         piece_captured_log.back() = actualCaptured;
@@ -296,8 +296,7 @@ void Pos::undo_move()
     enpassant_sq = enpassant_square_log.back();
     enpassant_square_log.pop_back();
 
-    // Retrieve which piece was captured
-    // This is the piece that was on 'to_square' (could be S_EMPTY if no capture)
+    // Retrieve which piece was captured on the last move
     Specific_Piece capturedSP = piece_captured_log.back();
     piece_captured_log.pop_back();
 
@@ -307,7 +306,7 @@ void Pos::undo_move()
     // Flip turn back
     turn = Color(!turn);
 
-    // Identify what piece moved (on the board after 'do_move')
+    // Identify what piece moved
     Specific_Piece movedSP = specific_piece_on(to);
     Piece movedPiece = specific_piece_to_piece(movedSP);
 
@@ -342,35 +341,29 @@ void Pos::undo_move()
     }
     else if (is_king_castle(move))
     {
-        // Remove king from 'to', place it back on 'from'
         remove_piece(turn, KING, to);
         add_piece(turn, KING, from);
 
-        // Move rook back from (from+1) to (from+3)
         remove_piece(turn, ROOK, Square(from + 1));
         add_piece(turn, ROOK, Square(from + 3));
     }
     else if (is_queen_castle(move))
     {
-        // Remove king from 'to', place it back on 'from'
         remove_piece(turn, KING, to);
         add_piece(turn, KING, from);
 
-        // Move rook back from (from-1) to (from-4)
         remove_piece(turn, ROOK, Square(from - 1));
         add_piece(turn, ROOK, Square(from - 4));
     }
     else
     {
         // Normal move
-        // Remove the moved piece from 'to', place it back on 'from'
         remove_piece(turn, movedPiece, to);
         add_piece(turn, movedPiece, from);
 
-        // If there was a capture, restore it on 'to'
+        // Restore piece captured
         if (capturedSP != S_EMPTY)
         {
-            // cout << "Captured piece: " << specific_piece_to_char(capturedSP) << endl;
             add_piece(Color(!turn), specific_piece_to_piece(capturedSP), to);
         }
     }

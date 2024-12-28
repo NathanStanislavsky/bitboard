@@ -10,121 +10,57 @@ using namespace std;
 #define set_bit(bitboard, square) (bitboard |= (1ULL << square))
 #define remove_bit(bitboard, square) (bitboard & ~(1ULL << square))
 
-// A column
 static const BB not_A_column = 18374403900871474942ULL;
-
-// 11111110
-// 11111110
-// 11111110
-// 11111110
-// 11111110
-// 11111110
-// 11111110
-// 11111110
-
-// 1111111011111110111111101111111011111110111111101111111011111110
-
-// H column
 static const BB not_H_column = 9187201950435737471ULL;
-
-// 11111110
-// 11111110
-// 11111110
-// 11111110
-// 11111110
-// 11111110
-// 11111110
-// 11111110
-
-// 111111101111111011111110111111101111111011111110111111101111111
-
-// HG column
 static const BB not_HG_column = 4557430888798830399ULL;
-
-// 11111100
-// 11111100
-// 11111100
-// 11111100
-// 11111100
-// 11111100
-// 11111100
-// 11111100
-
-// 11111100111111001111110011111100111111001111110011111100111111
-
-// AB column
 static const BB not_AB_column = 18229723555195321596ULL;
 
-// 0 0 1 1 1 1 1 1
-// 0 0 1 1 1 1 1 1
-// 0 0 1 1 1 1 1 1
-// 0 0 1 1 1 1 1 1
-// 0 0 1 1 1 1 1 1
-// 0 0 1 1 1 1 1 1
-// 0 0 1 1 1 1 1 1
-// 0 0 1 1 1 1 1 1
-
-// 1111110011111100111111001111110011111100111111001111110011111100
-
-// Generate pawn attacks
 BB mask_pawn_attacks(Color side, Square square)
 {
-    // attacks result bitboard
     BB attacks = 0ULL;
 
-    // piece bitboard
     BB bitboard = 0ULL;
-
-    // set piece on board
     set_bit(bitboard, square);
 
     if (side == WHITE)
     {
-        // White pawn attacks: Up-Left (+7), Up-Right (+9)
+        // Attack down right
         if ((bitboard << 7) & not_H_column)
         {
-            // attack up-left
             attacks |= (bitboard << 7);
         }
 
+        // Attack down left
         if ((bitboard << 9) & not_A_column)
         {
-            // attack up-right
             attacks |= (bitboard << 9);
         }
     }
     else // BLACK
     {
-        // Black pawn attacks: Down-Left (-9), Down-Right (-7)
+        // Attack up right
         if ((bitboard >> 9) & not_H_column)
         {
-            // attack down-left
             attacks |= (bitboard >> 9);
         }
 
+        // Attack up left
         if ((bitboard >> 7) & not_A_column)
         {
-            // attack down-right
             attacks |= (bitboard >> 7);
         }
     }
 
-    // return attack map
     return attacks;
 }
 
 BB mask_knight_attacks(Square square)
 {
-    // attacks result bitboard
     BB attacks = 0ULL;
 
-    // piece bitboard
     BB bitboard = 0ULL;
-
-    // set piece on board
     set_bit(bitboard, square);
 
-    // Generate knight attacks
     if ((bitboard >> 17) & not_H_column) // Up-left
     {
         attacks |= (bitboard >> 17);
@@ -158,20 +94,14 @@ BB mask_knight_attacks(Square square)
         attacks |= (bitboard << 6);
     }
 
-    // return attack map
     return attacks;
 }
 
-// Generate pawn attacks
 BB mask_king_attacks(Square square)
 {
-    // attacks result bitboard
     BB attacks = 0ULL;
 
-    // piece bitboard
     BB bitboard = 0ULL;
-
-    // set piece on board
     set_bit(bitboard, square);
 
     // north
@@ -216,107 +146,97 @@ BB mask_king_attacks(Square square)
         attacks |= (bitboard << 1);
     }
 
-    // return attack map
     return attacks;
 }
 
 BB mask_bishop_attacks(int square, BB block)
 {
-    // result attacks bitboard
     BB attacks = 0ULL;
 
-    // init row & file
-    int r, f;
+    int rank, file;
 
     // init target rank & files
-    int tr = square / 8;
-    int tf = square % 8;
+    int to_rank = square / 8;
+    int to_file = square % 8;
 
     // south east
-    for (r = tr + 1, f = tf + 1; r <= 7 && f <= 7; r++, f++)
+    for (rank = to_rank + 1, file = to_file + 1; rank <= 7 && file <= 7; rank++, file++)
     {
-        attacks |= (1ULL << (r * 8 + f));
-        if ((1ULL << (r * 8 + f)) & block)
+        attacks |= (1ULL << (rank * 8 + file));
+        if ((1ULL << (rank * 8 + file)) & block)
             break;
     }
 
     // north east
-    for (r = tr - 1, f = tf + 1; r >= 0 && f <= 7; r--, f++)
+    for (rank = to_rank - 1, file = to_file + 1; rank >= 0 && file <= 7; rank--, file++)
     {
-        attacks |= (1ULL << (r * 8 + f));
-        if ((1ULL << (r * 8 + f)) & block)
+        attacks |= (1ULL << (rank * 8 + file));
+        if ((1ULL << (rank * 8 + file)) & block)
             break;
     }
 
     // south west
-    for (r = tr + 1, f = tf - 1; r <= 7 && f >= 0; r++, f--)
+    for (rank = to_rank + 1, file = to_file - 1; rank <= 7 && file >= 0; rank++, file--)
     {
-        attacks |= (1ULL << (r * 8 + f));
-        if ((1ULL << (r * 8 + f)) & block)
+        attacks |= (1ULL << (rank * 8 + file));
+        if ((1ULL << (rank * 8 + file)) & block)
             break;
     }
 
     // north west
-    for (r = tr - 1, f = tf - 1; r >= 0 && f >= 0; r--, f--)
+    for (rank = to_rank - 1, file = to_file - 1; rank >= 0 && file >= 0; rank--, file--)
     {
-        attacks |= (1ULL << (r * 8 + f));
-        if ((1ULL << (r * 8 + f)) & block)
+        attacks |= (1ULL << (rank * 8 + file));
+        if ((1ULL << (rank * 8 + file)) & block)
             break;
     }
 
-    // return attack map
     return attacks;
 }
 
 BB mask_rook_attacks(int square, BB block)
 {
-    // result attacks bitboard
     BB attacks = 0ULL;
 
-    // init ranks & files
-    int r, f;
+    int rank, file;
 
-    // init target rank & files
-    int tr = square / 8;
-    int tf = square % 8;
+    int to_rank = square / 8;
+    int to_file = square % 8;
 
     // down
-    for (r = tr + 1; r <= 7; r++)
+    for (rank = to_rank + 1; rank <= 7; rank++)
     {
-        attacks |= (1ULL << (r * 8 + tf));
-        if ((1ULL << (r * 8 + tf)) & block)
+        attacks |= (1ULL << (rank * 8 + to_file));
+        if ((1ULL << (rank * 8 + to_file)) & block)
             break;
     }
     // up
-    for (r = tr - 1; r >= 0; r--)
+    for (rank = to_rank - 1; rank >= 0; rank--)
     {
-        attacks |= (1ULL << (r * 8 + tf));
-        if ((1ULL << (r * 8 + tf)) & block)
+        attacks |= (1ULL << (rank * 8 + to_file));
+        if ((1ULL << (rank * 8 + to_file)) & block)
             break;
     }
     // right
-    for (f = tf + 1; f <= 7; f++)
+    for (file = to_file + 1; file <= 7; file++)
     {
-        attacks |= (1ULL << (tr * 8 + f));
-        if ((1ULL << (tr * 8 + f)) & block)
+        attacks |= (1ULL << (to_rank * 8 + file));
+        if ((1ULL << (to_rank * 8 + file)) & block)
             break;
     }
     // left
-    for (f = tf - 1; f >= 0; f--)
+    for (file = to_file - 1; file >= 0; file--)
     {
-        attacks |= (1ULL << (tr * 8 + f));
-        if ((1ULL << (tr * 8 + f)) & block)
+        attacks |= (1ULL << (to_rank * 8 + file));
+        if ((1ULL << (to_rank * 8 + file)) & block)
             break;
     }
 
-    // return attack map
     return attacks;
 }
 
-// generate rook attacks on the fly
 BB mask_queen_attacks(int square, BB block)
 {
-    // result attacks bitboard
     BB attacks = 0ULL;
 
     attacks |= mask_rook_attacks(square, block);
@@ -348,9 +268,11 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
     {
         while (targets)
         {
+            // Get the index of the least significant bit
             int to = __builtin_ctzll(targets);
             targets &= targets - 1;
 
+            // capture
             MoveFlag flag = QUIET;
             if (bb_has(enemy_side_pieces, Square(to)))
             {
@@ -363,7 +285,6 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
                 int rank = to / 8;
                 if ((side == WHITE && rank == 7) || (side == BLACK && rank == 0))
                 {
-                    // Correctly parenthesize to ensure proper flag combination
                     MoveFlag promotionFlags[] = {
                         (MoveFlag)(Q_PROM | ((flag == CAPTURE) ? CAPTURE : 0)),
                         (MoveFlag)(R_PROM | ((flag == CAPTURE) ? CAPTURE : 0)),
@@ -385,7 +306,6 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
     // Generate Pawn Moves
     // -------------------
-    // Direction and double-push rank depend on side
     int forward = (side == WHITE) ? 8 : -8;
     int start_rank = (side == WHITE) ? 1 : 6; // White pawns start at rank 2 (index 1), Black at rank 7 (index 6)
 
@@ -396,9 +316,12 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
         Piece piece = PAWN;
         BB pawn_mask = mask_pawn_attacks(side, from);
+
+        // captures
         BB captures = pawn_mask & enemy_side_pieces;
         add_moves(from, captures, piece);
 
+        // enpassant
         if (pos.enpassant_sq != NONE_SQUARE)
         {
             Square ep = pos.enpassant_sq;
@@ -416,7 +339,7 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
             BB single_push = 1ULL << to_int;
             int to_rank = to_int / 8;
             int from_rank = from / 8;
-            Square to_s = Square(to_int);
+            Square to_square = Square(to_int);
 
             if ((side == WHITE && to_rank == 7) || (side == BLACK && to_rank == 0))
             {
@@ -426,7 +349,7 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
             else
             {
                 // normal single push
-                moves.push_back(generate_move(from, to_s));
+                moves.push_back(generate_move(from, to_square));
             }
 
             // Double push
@@ -445,8 +368,10 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
     // -------
     while (knights)
     {
+        // least significant bit
         Square from = (Square)__builtin_ctzll(knights);
         knights &= knights - 1;
+
         BB attacks = mask_knight_attacks(from) & ~current_side_pieces;
         add_moves(from, attacks, KNIGHT);
     }
@@ -486,9 +411,12 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
     if (king)
     {
         Square from = (Square)__builtin_ctzll(king);
+
+        // normal moves
         BB attacks = mask_king_attacks(from) & ~current_side_pieces;
         add_moves(from, attacks, KING);
 
+        // Castling
         if (side == WHITE)
         {
             if (pos.cr.wkc)
@@ -576,30 +504,20 @@ std::vector<Move> generate_legal_moves(Pos &pos)
     std::vector<Move> legalMoves;
     legalMoves.reserve(pseudoMoves.size());
 
+    /*
+    for every move in pseudoMoves we do the move 
+    and check if the king is in check after the move
+    */
     for (Move m : pseudoMoves)
     {
-        // std::cout << "Before do move:\n";
-        // pos.print_board();
-        // cout << move_to_string(m) << endl;
-        // cout << m << endl;
-
         pos.do_move(m);
-
-        // std::cout << "After do move:\n";
-        // pos.print_board();
 
         if (!pos.is_in_check(Color(!pos.turn)))
         {
             legalMoves.push_back(m);
         }
 
-        // std::cout << "Before undo move:\n";
-        // pos.print_board();
-
         pos.undo_move();
-
-        // std::cout << "After undo move:\n";
-        // pos.print_board();
     }
 
     return legalMoves;
@@ -613,19 +531,23 @@ int perft(Pos &pos, int depth, bool verbose)
     }
 
     vector<Move> validMoves = generate_legal_moves(pos);
+
     int count = 0;
-    // iterate through valid Moves
+
     for (int i = 0; i < validMoves.size(); i++)
     {
         pos.do_move(validMoves[i]);
-        // cout << "Move: " << move_to_string(validMoves[i]) << endl;
+
         int result = perft(pos, depth - 1, false);
+
         if (verbose)
         {
             cout << move_to_string(validMoves[i]) + " " + to_string(result) << endl;
         }
         count += result;
+
         pos.undo_move();
     }
+    
     return count;
 }
