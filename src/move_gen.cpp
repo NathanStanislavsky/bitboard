@@ -245,6 +245,17 @@ BB mask_queen_attacks(int square, BB block)
     return attacks;
 }
 
+void init_leapers_attacks()
+{
+    for (int square = 0; square < 64; square++)
+    {
+        pawn_attacks[WHITE][square] = mask_pawn_attacks(WHITE, Square(square));
+        pawn_attacks[BLACK][square] = mask_pawn_attacks(BLACK, Square(square));
+        knight_attacks[square] = mask_knight_attacks(Square(square));
+        king_attacks[square] = mask_king_attacks(Square(square));
+    }
+}
+
 vector<Move> generate_psuedo_moves(const Pos &pos)
 {
     std::vector<Move> moves;
