@@ -268,9 +268,11 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
     {
         while (targets)
         {
+            // Get the index of the least significant bit
             int to = __builtin_ctzll(targets);
             targets &= targets - 1;
 
+            // capture
             MoveFlag flag = QUIET;
             if (bb_has(enemy_side_pieces, Square(to)))
             {
@@ -283,7 +285,6 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
                 int rank = to / 8;
                 if ((side == WHITE && rank == 7) || (side == BLACK && rank == 0))
                 {
-                    // Correctly parenthesize to ensure proper flag combination
                     MoveFlag promotionFlags[] = {
                         (MoveFlag)(Q_PROM | ((flag == CAPTURE) ? CAPTURE : 0)),
                         (MoveFlag)(R_PROM | ((flag == CAPTURE) ? CAPTURE : 0)),
@@ -305,7 +306,6 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
     // Generate Pawn Moves
     // -------------------
-    // Direction and double-push rank depend on side
     int forward = (side == WHITE) ? 8 : -8;
     int start_rank = (side == WHITE) ? 1 : 6; // White pawns start at rank 2 (index 1), Black at rank 7 (index 6)
 
@@ -316,9 +316,12 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
 
         Piece piece = PAWN;
         BB pawn_mask = mask_pawn_attacks(side, from);
+
+        // captures
         BB captures = pawn_mask & enemy_side_pieces;
         add_moves(from, captures, piece);
 
+        // enpassant
         if (pos.enpassant_sq != NONE_SQUARE)
         {
             Square ep = pos.enpassant_sq;
@@ -336,7 +339,7 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
             BB single_push = 1ULL << to_int;
             int to_rank = to_int / 8;
             int from_rank = from / 8;
-            Square to_s = Square(to_int);
+            Square to_square = Square(to_int);
 
             if ((side == WHITE && to_rank == 7) || (side == BLACK && to_rank == 0))
             {
@@ -346,7 +349,7 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
             else
             {
                 // normal single push
-                moves.push_back(generate_move(from, to_s));
+                moves.push_back(generate_move(from, to_square));
             }
 
             // Double push
@@ -365,8 +368,10 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
     // -------
     while (knights)
     {
+        // least significant bit
         Square from = (Square)__builtin_ctzll(knights);
         knights &= knights - 1;
+
         BB attacks = mask_knight_attacks(from) & ~current_side_pieces;
         add_moves(from, attacks, KNIGHT);
     }
@@ -406,9 +411,12 @@ vector<Move> generate_psuedo_moves(const Pos &pos)
     if (king)
     {
         Square from = (Square)__builtin_ctzll(king);
+
+        // normal moves
         BB attacks = mask_king_attacks(from) & ~current_side_pieces;
         add_moves(from, attacks, KING);
 
+        // Castling
         if (side == WHITE)
         {
             if (pos.cr.wkc)
