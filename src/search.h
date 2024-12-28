@@ -1,7 +1,11 @@
 #pragma once
 
+#include "types.h"
+#include "pos.h"
+#include "move_gen.h"
+
 int eval(Pos& pos);
 
 int count_material(Pos& pos, Color side);
 
-int search(Pos& pos, int depth);
+int search(Pos &pos, int depth, int alpha, int beta);

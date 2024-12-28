@@ -6,21 +6,22 @@
 #include "types.h"
 #include "test.h"
 #include "timer.h"
+#include "search.h"
 
 int main()
 {
     init_leapers_attacks();
 
-    // Pos pos("");
-    // pos.print_board();
+    Pos pos("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    pos.print_board();
 
-    // Timestamp start = get_current_ms();
+    int depth = 5;
+    int alpha = -10000;
+    int beta = 10000;
 
-    // cout << perft(pos, 6, true) << endl;
+    int evaluation_score = search(pos, depth, alpha, beta);
 
-    // print_time_diff(start);
-
-    test_fens();
+    std::cout << "Evaluation Score: " << evaluation_score << std::endl;
 
     return 0;
 }

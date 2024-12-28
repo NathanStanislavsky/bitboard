@@ -32,7 +32,7 @@ int eval(Pos &pos)
     return current_player_material - enemy_player_material;
 }
 
-int search(Pos &pos, int depth)
+int search(Pos &pos, int depth, int alpha, int beta)
 {
     if (depth == 0)
     {
@@ -52,21 +52,20 @@ int search(Pos &pos, int depth)
         {
             return 0;
         }
-
     }
 
-    // maximize the score
-    int max = -10000;
     for (Move move : legal_moves)
     {
-        pos.doMove(move);
-        int eval = -search(pos, depth - 1);
-        pos.undoMove();
+        pos.do_move(move);
+        int eval = -search(pos, depth - 1, -beta, -alpha);
+        pos.undo_move();
 
-        if (eval > max)
+        if (eval >= beta)
         {
-            max = eval;
+            // Move was too good for the opponent so we avoid this position
+            return beta;
         }
+        alpha = max(alpha, eval);
     }
-    return max;
+    return alpha;
 }
