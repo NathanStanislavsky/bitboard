@@ -157,10 +157,10 @@ BB mask_bishop_attacks(int square, BB block)
 
     // init target rank & files
     int to_rank = square / 8;
-    int tf = square % 8;
+    int to_file = square % 8;
 
     // south east
-    for (rank = to_rank + 1, file = tf + 1; rank <= 7 && f <= 7; rank++, file++)
+    for (rank = to_rank + 1, file = to_file + 1; rank <= 7 && file <= 7; rank++, file++)
     {
         attacks |= (1ULL << (rank * 8 + file));
         if ((1ULL << (rank * 8 + file)) & block)
@@ -168,7 +168,7 @@ BB mask_bishop_attacks(int square, BB block)
     }
 
     // north east
-    for (rank = to_rank - 1, file = tf + 1; rank >= 0 && file <= 7; rank--, file++)
+    for (rank = to_rank - 1, file = to_file + 1; rank >= 0 && file <= 7; rank--, file++)
     {
         attacks |= (1ULL << (rank * 8 + file));
         if ((1ULL << (rank * 8 + file)) & block)
@@ -176,7 +176,7 @@ BB mask_bishop_attacks(int square, BB block)
     }
 
     // south west
-    for (rank = to_rank + 1, file = tf - 1; rank <= 7 && file >= 0; rank++, file--)
+    for (rank = to_rank + 1, file = to_file - 1; rank <= 7 && file >= 0; rank++, file--)
     {
         attacks |= (1ULL << (rank * 8 + file));
         if ((1ULL << (rank * 8 + file)) & block)
@@ -184,7 +184,7 @@ BB mask_bishop_attacks(int square, BB block)
     }
 
     // north west
-    for (rank = to_rank - 1, file = tf - 1; rank >= 0 && file >= 0; rank--, file--)
+    for (rank = to_rank - 1, file = to_file - 1; rank >= 0 && file >= 0; rank--, file--)
     {
         attacks |= (1ULL << (rank * 8 + file));
         if ((1ULL << (rank * 8 + file)) & block)
@@ -196,53 +196,47 @@ BB mask_bishop_attacks(int square, BB block)
 
 BB mask_rook_attacks(int square, BB block)
 {
-    // result attacks bitboard
     BB attacks = 0ULL;
 
-    // init ranks & files
-    int r, f;
+    int rank, file;
 
-    // init target rank & files
     int to_rank = square / 8;
-    int tf = square % 8;
+    int to_file = square % 8;
 
     // down
-    for (r = to_rank + 1; r <= 7; r++)
+    for (rank = to_rank + 1; rank <= 7; rank++)
     {
-        attacks |= (1ULL << (r * 8 + tf));
-        if ((1ULL << (r * 8 + tf)) & block)
+        attacks |= (1ULL << (rank * 8 + to_file));
+        if ((1ULL << (rank * 8 + to_file)) & block)
             break;
     }
     // up
-    for (r = to_rank - 1; r >= 0; r--)
+    for (rank = to_rank - 1; rank >= 0; rank--)
     {
-        attacks |= (1ULL << (r * 8 + tf));
-        if ((1ULL << (r * 8 + tf)) & block)
+        attacks |= (1ULL << (rank * 8 + to_file));
+        if ((1ULL << (rank * 8 + to_file)) & block)
             break;
     }
     // right
-    for (f = tf + 1; f <= 7; f++)
+    for (file = to_file + 1; file <= 7; file++)
     {
-        attacks |= (1ULL << (to_rank * 8 + f));
-        if ((1ULL << (to_rank * 8 + f)) & block)
+        attacks |= (1ULL << (to_rank * 8 + file));
+        if ((1ULL << (to_rank * 8 + file)) & block)
             break;
     }
     // left
-    for (f = tf - 1; f >= 0; f--)
+    for (file = to_file - 1; file >= 0; file--)
     {
-        attacks |= (1ULL << (to_rank * 8 + f));
-        if ((1ULL << (to_rank * 8 + f)) & block)
+        attacks |= (1ULL << (to_rank * 8 + file));
+        if ((1ULL << (to_rank * 8 + file)) & block)
             break;
     }
 
-    // return attack map
     return attacks;
 }
 
-// generate rook attacks on the fly
 BB mask_queen_attacks(int square, BB block)
 {
-    // result attacks bitboard
     BB attacks = 0ULL;
 
     attacks |= mask_rook_attacks(square, block);
