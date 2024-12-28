@@ -10,121 +10,57 @@ using namespace std;
 #define set_bit(bitboard, square) (bitboard |= (1ULL << square))
 #define remove_bit(bitboard, square) (bitboard & ~(1ULL << square))
 
-// A column
 static const BB not_A_column = 18374403900871474942ULL;
-
-// 11111110
-// 11111110
-// 11111110
-// 11111110
-// 11111110
-// 11111110
-// 11111110
-// 11111110
-
-// 1111111011111110111111101111111011111110111111101111111011111110
-
-// H column
 static const BB not_H_column = 9187201950435737471ULL;
-
-// 11111110
-// 11111110
-// 11111110
-// 11111110
-// 11111110
-// 11111110
-// 11111110
-// 11111110
-
-// 111111101111111011111110111111101111111011111110111111101111111
-
-// HG column
 static const BB not_HG_column = 4557430888798830399ULL;
-
-// 11111100
-// 11111100
-// 11111100
-// 11111100
-// 11111100
-// 11111100
-// 11111100
-// 11111100
-
-// 11111100111111001111110011111100111111001111110011111100111111
-
-// AB column
 static const BB not_AB_column = 18229723555195321596ULL;
 
-// 0 0 1 1 1 1 1 1
-// 0 0 1 1 1 1 1 1
-// 0 0 1 1 1 1 1 1
-// 0 0 1 1 1 1 1 1
-// 0 0 1 1 1 1 1 1
-// 0 0 1 1 1 1 1 1
-// 0 0 1 1 1 1 1 1
-// 0 0 1 1 1 1 1 1
-
-// 1111110011111100111111001111110011111100111111001111110011111100
-
-// Generate pawn attacks
 BB mask_pawn_attacks(Color side, Square square)
 {
-    // attacks result bitboard
     BB attacks = 0ULL;
 
-    // piece bitboard
     BB bitboard = 0ULL;
-
-    // set piece on board
     set_bit(bitboard, square);
 
     if (side == WHITE)
     {
-        // White pawn attacks: Up-Left (+7), Up-Right (+9)
+        // Attack down right
         if ((bitboard << 7) & not_H_column)
         {
-            // attack up-left
             attacks |= (bitboard << 7);
         }
 
+        // Attack down left
         if ((bitboard << 9) & not_A_column)
         {
-            // attack up-right
             attacks |= (bitboard << 9);
         }
     }
     else // BLACK
     {
-        // Black pawn attacks: Down-Left (-9), Down-Right (-7)
+        // Attack up right
         if ((bitboard >> 9) & not_H_column)
         {
-            // attack down-left
             attacks |= (bitboard >> 9);
         }
 
+        // Attack up left
         if ((bitboard >> 7) & not_A_column)
         {
-            // attack down-right
             attacks |= (bitboard >> 7);
         }
     }
 
-    // return attack map
     return attacks;
 }
 
 BB mask_knight_attacks(Square square)
 {
-    // attacks result bitboard
     BB attacks = 0ULL;
 
-    // piece bitboard
     BB bitboard = 0ULL;
-
-    // set piece on board
     set_bit(bitboard, square);
 
-    // Generate knight attacks
     if ((bitboard >> 17) & not_H_column) // Up-left
     {
         attacks |= (bitboard >> 17);
@@ -158,20 +94,14 @@ BB mask_knight_attacks(Square square)
         attacks |= (bitboard << 6);
     }
 
-    // return attack map
     return attacks;
 }
 
-// Generate pawn attacks
 BB mask_king_attacks(Square square)
 {
-    // attacks result bitboard
     BB attacks = 0ULL;
 
-    // piece bitboard
     BB bitboard = 0ULL;
-
-    // set piece on board
     set_bit(bitboard, square);
 
     // north
@@ -216,55 +146,51 @@ BB mask_king_attacks(Square square)
         attacks |= (bitboard << 1);
     }
 
-    // return attack map
     return attacks;
 }
 
 BB mask_bishop_attacks(int square, BB block)
 {
-    // result attacks bitboard
     BB attacks = 0ULL;
 
-    // init row & file
-    int r, f;
+    int rank, file;
 
     // init target rank & files
-    int tr = square / 8;
+    int to_rank = square / 8;
     int tf = square % 8;
 
     // south east
-    for (r = tr + 1, f = tf + 1; r <= 7 && f <= 7; r++, f++)
+    for (rank = to_rank + 1, file = tf + 1; rank <= 7 && f <= 7; rank++, file++)
     {
-        attacks |= (1ULL << (r * 8 + f));
-        if ((1ULL << (r * 8 + f)) & block)
+        attacks |= (1ULL << (rank * 8 + file));
+        if ((1ULL << (rank * 8 + file)) & block)
             break;
     }
 
     // north east
-    for (r = tr - 1, f = tf + 1; r >= 0 && f <= 7; r--, f++)
+    for (rank = to_rank - 1, file = tf + 1; rank >= 0 && file <= 7; rank--, file++)
     {
-        attacks |= (1ULL << (r * 8 + f));
-        if ((1ULL << (r * 8 + f)) & block)
+        attacks |= (1ULL << (rank * 8 + file));
+        if ((1ULL << (rank * 8 + file)) & block)
             break;
     }
 
     // south west
-    for (r = tr + 1, f = tf - 1; r <= 7 && f >= 0; r++, f--)
+    for (rank = to_rank + 1, file = tf - 1; rank <= 7 && file >= 0; rank++, file--)
     {
-        attacks |= (1ULL << (r * 8 + f));
-        if ((1ULL << (r * 8 + f)) & block)
+        attacks |= (1ULL << (rank * 8 + file));
+        if ((1ULL << (rank * 8 + file)) & block)
             break;
     }
 
     // north west
-    for (r = tr - 1, f = tf - 1; r >= 0 && f >= 0; r--, f--)
+    for (rank = to_rank - 1, file = tf - 1; rank >= 0 && file >= 0; rank--, file--)
     {
-        attacks |= (1ULL << (r * 8 + f));
-        if ((1ULL << (r * 8 + f)) & block)
+        attacks |= (1ULL << (rank * 8 + file));
+        if ((1ULL << (rank * 8 + file)) & block)
             break;
     }
 
-    // return attack map
     return attacks;
 }
 
@@ -277,18 +203,18 @@ BB mask_rook_attacks(int square, BB block)
     int r, f;
 
     // init target rank & files
-    int tr = square / 8;
+    int to_rank = square / 8;
     int tf = square % 8;
 
     // down
-    for (r = tr + 1; r <= 7; r++)
+    for (r = to_rank + 1; r <= 7; r++)
     {
         attacks |= (1ULL << (r * 8 + tf));
         if ((1ULL << (r * 8 + tf)) & block)
             break;
     }
     // up
-    for (r = tr - 1; r >= 0; r--)
+    for (r = to_rank - 1; r >= 0; r--)
     {
         attacks |= (1ULL << (r * 8 + tf));
         if ((1ULL << (r * 8 + tf)) & block)
@@ -297,15 +223,15 @@ BB mask_rook_attacks(int square, BB block)
     // right
     for (f = tf + 1; f <= 7; f++)
     {
-        attacks |= (1ULL << (tr * 8 + f));
-        if ((1ULL << (tr * 8 + f)) & block)
+        attacks |= (1ULL << (to_rank * 8 + f));
+        if ((1ULL << (to_rank * 8 + f)) & block)
             break;
     }
     // left
     for (f = tf - 1; f >= 0; f--)
     {
-        attacks |= (1ULL << (tr * 8 + f));
-        if ((1ULL << (tr * 8 + f)) & block)
+        attacks |= (1ULL << (to_rank * 8 + f));
+        if ((1ULL << (to_rank * 8 + f)) & block)
             break;
     }
 
