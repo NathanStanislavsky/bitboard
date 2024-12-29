@@ -44,6 +44,8 @@ public:
     vector<Move> move_log;
 
     bool is_square_attacked(Square sq, Color side) const;
+    
+    bool Pos::is_attacked_by_pawn(Square sq, Color enemy_side) const;
 
     bool is_in_check(Color side) const;
 };

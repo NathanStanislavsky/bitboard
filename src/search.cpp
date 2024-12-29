@@ -4,7 +4,7 @@
 
 #include <map>
 
-std::map<Piece, int> point_value = {
+std::map<Piece, int> piece_value = {
     {PAWN, 100},
     {BISHOP, 300},
     {KNIGHT, 300},
@@ -18,7 +18,7 @@ int count_material(Pos &pos, Color side)
     int material = 0;
     for (int i = 0; i < 6; i++)
     {
-        material += __builtin_popcount(pos.pieces_bbs[i] & pos.colors_bbs[side]) * point_value[Piece(i)];
+        material += __builtin_popcount(pos.pieces_bbs[i] & pos.colors_bbs[side]) * piece_value[Piece(i)];
     }
     return material;
 }
@@ -107,4 +107,29 @@ Move get_best_move(Pos &pos, int depth)
     }
 
     return bestMove;
+}
+
+void move_order(vector<Move> &moves)
+{
+    for (const Move &move : moves) {
+        int move_score_guess = 0;
+        Piece piece_moved = pos.board[from_square(move)];
+        Piece piece_captured = pos.board[to_square(move)];
+
+        // Prioritize capturing pieces of higher values with lower value pieces
+        if (is_capture(move)) {
+            move_score_guess = 10 * piece_value[piece_captured] - piece_value[piece_moved];
+        }
+
+        // Prioritize promotions
+        if (is_promotion(move)) {
+            move_score_guess += piece_value[promotion_piece(move)];
+        }
+
+        // Prioritize not moving pieces to squares attacked by pawns
+        if (is_attacked_by_pawn(to_square(move), Color(!pos.turn))) {
+            move_score_guess -= piece_value[piece_moved];
+        }
+    }
+
 }
