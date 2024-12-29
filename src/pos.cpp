@@ -482,4 +482,5 @@ bool Pos::is_attacked_by_pawn(Square sq, Color enemy_side) const
         if ((attacks & (1ULL << sq)) != 0)
             return true;
     }
+    return false;
 }

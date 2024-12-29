@@ -17,7 +17,11 @@ int main()
 
     int depth = 7;
 
+    Timestamp start = get_current_ms();
+
     Move best_move = get_best_move(pos, depth);
+
+    print_time_diff(start);
 
     std::string best_move_str = move_to_string(best_move);
 

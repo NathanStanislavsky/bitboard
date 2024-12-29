@@ -34,6 +34,54 @@ int eval(Pos &pos)
     return current_player_material - enemy_player_material;
 }
 
+void move_order(Pos &pos, std::vector<Move> &moves)
+{
+    std::vector<std::pair<int, Move>> scored_moves;
+    scored_moves.reserve(moves.size());
+
+    for (const Move &move : moves)
+    {
+        int move_score_guess = 0;
+        Piece piece_moved = pos.piece_on(from_square(move));
+        Piece piece_captured = pos.piece_on(to_square(move));
+
+        // Prioritize capturing pieces of higher values with lower value pieces
+        if (is_capture(move))
+        {
+            move_score_guess = 10 * piece_value[piece_captured] - piece_value[piece_moved];
+        }
+
+        // Prioritize promotions
+        if (is_promotion(move))
+        {
+            move_score_guess += piece_value[promotion_piece(move)];
+        }
+
+        // Prioritize not moving pieces to squares attacked by pawns
+        if (pos.is_attacked_by_pawn(to_square(move), Color(!pos.turn)))
+        {
+            move_score_guess -= piece_value[piece_moved];
+        }
+
+        scored_moves.emplace_back(move_score_guess, move);
+    }
+
+    // Sort the moves in descending order of score
+    std::sort(scored_moves.begin(), scored_moves.end(),
+              [](const std::pair<int, Move> &a, const std::pair<int, Move> &b) -> bool
+              {
+                  return a.first > b.first;
+              });
+
+    // Extract the sorted moves back into the original vector
+    moves.clear();
+    moves.reserve(scored_moves.size());
+    for (const auto &pair : scored_moves)
+    {
+        moves.emplace_back(pair.second);
+    }
+}
+
 int search(Pos &pos, int depth, int alpha, int beta)
 {
     if (depth == 0)
@@ -55,6 +103,8 @@ int search(Pos &pos, int depth, int alpha, int beta)
             return 0;
         }
     }
+
+    move_order(pos, legal_moves);
 
     for (Move move : legal_moves)
     {
@@ -107,29 +157,4 @@ Move get_best_move(Pos &pos, int depth)
     }
 
     return bestMove;
-}
-
-void move_order(vector<Move> &moves)
-{
-    for (const Move &move : moves) {
-        int move_score_guess = 0;
-        Piece piece_moved = pos.board[from_square(move)];
-        Piece piece_captured = pos.board[to_square(move)];
-
-        // Prioritize capturing pieces of higher values with lower value pieces
-        if (is_capture(move)) {
-            move_score_guess = 10 * piece_value[piece_captured] - piece_value[piece_moved];
-        }
-
-        // Prioritize promotions
-        if (is_promotion(move)) {
-            move_score_guess += piece_value[promotion_piece(move)];
-        }
-
-        // Prioritize not moving pieces to squares attacked by pawns
-        if (is_attacked_by_pawn(to_square(move), Color(!pos.turn))) {
-            move_score_guess -= piece_value[piece_moved];
-        }
-    }
-
 }
