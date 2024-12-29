@@ -76,6 +76,18 @@ Move get_best_move(Pos &pos, int depth)
 {
     std::vector<Move> legal_moves = generate_legal_moves(pos);
 
+    if (legal_moves.size() == 0)
+    {
+        if (pos.is_in_check(pos.turn))
+        {
+            return -INF;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
     int maxEval = -INF;
     Move bestMove = legal_moves[0];
 
