@@ -11,6 +11,8 @@ std::map<Piece, int> point_value = {
     {ROOK, 500},
     {QUEEN, 900}};
 
+int INF = 2147483647;
+
 int count_material(Pos &pos, Color side)
 {
     int material = 0;
@@ -46,7 +48,7 @@ int search(Pos &pos, int depth, int alpha, int beta)
     {
         if (pos.is_in_check(pos.turn))
         {
-            return -10000;
+            return -INF;
         }
         else
         {
@@ -68,4 +70,29 @@ int search(Pos &pos, int depth, int alpha, int beta)
         alpha = max(alpha, eval);
     }
     return alpha;
+}
+
+Move get_best_move(Pos &pos, int depth)
+{
+    std::vector<Move> legal_moves = generate_legal_moves(pos);
+
+    int maxEval = -INF;
+    Move bestMove = legal_moves[0];
+
+    for (const Move &move : legal_moves)
+    {
+        pos.do_move(move);
+
+        int eval = -search(pos, depth - 1, -INF, INF);
+
+        pos.undo_move();
+
+        if (eval > maxEval)
+        {
+            maxEval = eval;
+            bestMove = move;
+        }
+    }
+
+    return bestMove;
 }

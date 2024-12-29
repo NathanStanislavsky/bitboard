@@ -9,3 +9,5 @@ int eval(Pos& pos);
 int count_material(Pos& pos, Color side);
 
 int search(Pos &pos, int depth, int alpha, int beta);
+
+Move get_best_move(Pos &pos, int depth);
