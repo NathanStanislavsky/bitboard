@@ -2,11 +2,8 @@
 
 #include "types.h"
 #include "pos.h"
-#include "move_gen.h"
 
-int eval(Pos& pos);
-
-int count_material(Pos& pos, Color side);
+int search_all_captures(Pos &pos, int alpha, int beta);
 
 void move_order(Pos &pos, std::vector<Move> &moves);
 

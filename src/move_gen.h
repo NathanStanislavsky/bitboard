@@ -1,9 +1,9 @@
 #pragma once
 
-#include "types.h"
 #include <vector>
+
+#include "types.h"
 #include "pos.h"
-#include "utilities.h"
 
 // Masking
 BB mask_pawn_attacks(Color side, Square square);

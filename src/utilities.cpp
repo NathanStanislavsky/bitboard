@@ -1,7 +1,9 @@
-#include "utilities.h"
 #include <string>
-#include "move.h"
 #include <iostream>
+#include <map>
+
+#include "utilities.h"
+#include "move.h"
 #include "move_gen.h"
 
 using namespace std;
@@ -73,6 +75,19 @@ map<Piece, char> piece_to_char_map = {
     {QUEEN, 'q'},
     {KING, 'k'},
 };
+
+std::map<Piece, int> piece_value = {
+    {PAWN, 100},
+    {BISHOP, 300},
+    {KNIGHT, 300},
+    {ROOK, 500},
+    {QUEEN, 900}
+};
+
+int get_piece_value(Piece piece)
+{
+    return piece_value[piece];
+}
 
 char piece_to_char_color(Piece piece, Color color)
 {

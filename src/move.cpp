@@ -1,5 +1,6 @@
 #include "move.h"
 #include "types.h"
+#include "utilities.h"
 
 MoveFlag flags(Move move)
 {

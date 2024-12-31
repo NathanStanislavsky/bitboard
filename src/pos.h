@@ -1,9 +1,11 @@
 #pragma once
-#include "types.h"
+
 #include <string>
+#include <vector>
+
+#include "types.h"
 #include "utilities.h"
 #include "castling.h"
-#include <vector>
 #include "move.h"
 
 using namespace std;

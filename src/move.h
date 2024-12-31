@@ -1,8 +1,8 @@
 #pragma once
 
-#include "types.h"
-#include "utilities.h"
 #include <cassert>
+
+#include "types.h"
 
 MoveFlag flags(Move move);
 

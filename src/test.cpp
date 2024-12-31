@@ -1,7 +1,11 @@
 #include <iostream>
 #include <string>
 #include <vector>
+
 #include "test.h"
+#include "pos.h"
+#include "move_gen.h"
+#include "timer.h"
 
 struct TestCase
 {

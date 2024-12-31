@@ -1,38 +1,8 @@
 #include "search.h"
-#include "types.h"
-#include "pos.h"
-
-#include <map>
-
-std::map<Piece, int> piece_value = {
-    {PAWN, 100},
-    {BISHOP, 300},
-    {KNIGHT, 300},
-    {ROOK, 500},
-    {QUEEN, 900}};
+#include "evaluation.h"
+#include "move_gen.h"
 
 int INF = 2147483647;
-
-int count_material(Pos &pos, Color side)
-{
-    int material = 0;
-    for (int i = 0; i < 6; i++)
-    {
-        material += __builtin_popcountll(pos.pieces_bbs[i] & pos.colors_bbs[side]) * piece_value[Piece(i)];
-    }
-    return material;
-}
-
-int eval(Pos &pos)
-{
-    Color side = pos.turn;
-    Color enemy = Color(!side);
-
-    int current_player_material = count_material(pos, side);
-    int enemy_player_material = count_material(pos, enemy);
-
-    return current_player_material - enemy_player_material;
-}
 
 std::vector<Move> generate_legal_captures(Pos &pos)
 {
@@ -100,19 +70,19 @@ void move_order(Pos &pos, std::vector<Move> &moves)
         // Prioritize capturing pieces of higher values with lower value pieces
         if (is_capture(move))
         {
-            move_score_guess = 10 * piece_value[piece_captured] - piece_value[piece_moved];
+            move_score_guess = 10 * get_piece_value(piece_captured) - get_piece_value(piece_moved);
         }
 
         // Prioritize promotions
         if (is_promotion(move))
         {
-            move_score_guess += piece_value[promotion_piece(move)];
+            move_score_guess += get_piece_value(promotion_piece(move));
         }
 
         // Prioritize not moving pieces to squares attacked by pawns
         if (pos.is_attacked_by_pawn(to_square(move), Color(!pos.turn)))
         {
-            move_score_guess -= piece_value[piece_moved];
+            move_score_guess -= get_piece_value(piece_moved);
         }
 
         scored_moves.emplace_back(move_score_guess, move);
