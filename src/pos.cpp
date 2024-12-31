@@ -468,3 +468,19 @@ bool Pos::is_in_check(Color side) const
 
     return is_square_attacked(king_location, Color(!side));
 }
+
+bool Pos::is_attacked_by_pawn(Square sq, Color enemy_side) const
+{
+    BB side_pawns = pieces_bbs[PAWN] & colors_bbs[enemy_side];
+
+    while (side_pawns)
+    {
+        Square from = static_cast<Square>(__builtin_ctzll(side_pawns));
+        side_pawns &= side_pawns - 1;
+        BB attacks = pawn_attacks[enemy_side][from];
+
+        if ((attacks & (1ULL << sq)) != 0)
+            return true;
+    }
+    return false;
+}
