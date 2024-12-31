@@ -34,6 +34,58 @@ int eval(Pos &pos)
     return current_player_material - enemy_player_material;
 }
 
+std::vector<Move> generate_legal_captures(Pos &pos)
+{
+    std::vector<Move> legal_moves = generate_legal_moves(pos);
+    std::vector<Move> legal_captures;
+    legal_captures.reserve(legal_moves.size());
+
+    for (Move m : legal_moves)
+    {
+        if (is_capture(m))
+        {
+            legal_captures.push_back(m);
+        }
+    }
+
+    return legal_captures;
+}
+
+int search_all_captures(Pos &pos, int alpha, int beta)
+{
+    int evaluation = eval(pos);
+
+    if (evaluation >= beta)
+    {
+        return beta;
+    }
+    alpha = max(alpha, evaluation);
+
+    std::vector<Move> capture_moves = generate_legal_captures(pos);
+
+    if (capture_moves.empty())
+    {
+        return evaluation;
+    }
+
+    move_order(pos, capture_moves);
+
+    for (Move m : capture_moves)
+    {
+        pos.do_move(m);
+        int evaluation = -search_all_captures(pos, -beta, -alpha);
+        pos.undo_move();
+
+        if (evaluation >= beta)
+        {
+            return beta;
+        }
+        alpha = max(alpha, evaluation);
+    }
+
+    return alpha;
+}
+
 void move_order(Pos &pos, std::vector<Move> &moves)
 {
     std::vector<std::pair<int, Move>> scored_moves;
@@ -82,7 +134,8 @@ int search(Pos &pos, int depth, int alpha, int beta)
 {
     if (depth == 0)
     {
-        return eval(pos);
+        // keep going until no captures are left (quiescence search)
+        return search_all_captures(pos, alpha, beta);
     }
 
     vector<Move> legal_moves = generate_legal_moves(pos);
