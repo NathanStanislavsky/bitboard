@@ -18,7 +18,7 @@ int count_material(Pos &pos, Color side)
     int material = 0;
     for (int i = 0; i < 6; i++)
     {
-        material += __builtin_popcount(pos.pieces_bbs[i] & pos.colors_bbs[side]) * piece_value[Piece(i)];
+        material += __builtin_popcountll(pos.pieces_bbs[i] & pos.colors_bbs[side]) * piece_value[Piece(i)];
     }
     return material;
 }
@@ -67,11 +67,7 @@ void move_order(Pos &pos, std::vector<Move> &moves)
     }
 
     // Sort the moves in descending order of score
-    std::sort(scored_moves.begin(), scored_moves.end(),
-              [](const std::pair<int, Move> &a, const std::pair<int, Move> &b) -> bool
-              {
-                  return a.first > b.first;
-              });
+    std::sort(scored_moves.begin(), scored_moves.end(), std::greater<std::pair<int, Move>>());
 
     // Extract the sorted moves back into the original vector
     moves.clear();
