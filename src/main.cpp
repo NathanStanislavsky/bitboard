@@ -12,10 +12,10 @@ int main()
 {
     init_leapers_attacks();
 
-    Pos pos("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R b - - 0 1");
+    Pos pos("3r4/8/5k2/8/8/5K2/r7/8 b - - 12 7");
     pos.print_board();
 
-    int depth = 4;
+    int depth = 8;
 
     Timestamp start = get_current_ms();
 
