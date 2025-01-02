@@ -31,8 +31,8 @@ int quiescence_search(Pos &pos, int alpha, int beta)
     if (evaluation >= beta)
     {
         // If evaluation is huge (like a mate score), return it exactly
-        if (evaluation >= CHECKMATE_SCORE - 100) // or some threshold
-            return evaluation;
+        // if (evaluation >= CHECKMATE_SCORE - 100) // or some threshold
+        //     return evaluation;
         return beta;
     }
     alpha = max(alpha, evaluation);
