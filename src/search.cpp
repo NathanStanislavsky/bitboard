@@ -5,7 +5,7 @@
 #include "move_gen.h"
 
 int INF = 2147483647;
-int val = 1000000000;
+int CHECKMATE_SCORE = 30000;
 
 std::vector<Move> generate_legal_captures(Pos &pos)
 {
@@ -115,7 +115,7 @@ int search(Pos &pos, int depth, int alpha, int beta)
         if (pos.is_in_check(pos.turn))
         {
             // std::cout << "Checkmate" << std::endl;
-            return -INF;
+            return -CHECKMATE_SCORE;
         }
         else
         {
@@ -127,9 +127,29 @@ int search(Pos &pos, int depth, int alpha, int beta)
 
     for (Move move : legal_moves)
     {
+        // std::cout << "Before: " << move_to_string(move) << std::endl;
+        // pos.print_board();
         pos.do_move(move);
+        // std::cout << "After: " << move_to_string(move) << std::endl;
+        // pos.print_board();
+
+        // Color sideToMove = pos.turn; // Should be White
+        // auto oppMoves = generate_legal_moves(pos);
+        // bool inCheck = pos.is_in_check(sideToMove);
+
+        // std::cout << "Move:" << move_to_string(move) << sideToMove
+        //           << ", #moves=" << oppMoves.size()
+        //           << ", inCheck=" << inCheck << std::endl;
+
         int eval = -search(pos, depth - 1, -beta, -alpha);
+
+        // std::cout << "Eval: " << eval << std::endl;
+
+        // std::cout << "Before undo: " << move_to_string(move) << std::endl;
+        // pos.print_board();
         pos.undo_move();
+        // std::cout << "After undo: " << move_to_string(move) << std::endl;
+        // pos.print_board();
 
         if (eval >= beta)
         {
@@ -145,7 +165,12 @@ Move get_best_move(Pos &pos, int depth)
 {
     std::vector<Move> legal_moves = generate_legal_moves(pos);
 
-    int maxEval = -val;
+    if (legal_moves.size() == 0)
+    {
+        return Move();
+    }
+
+    int maxEval = -INF;
     Move bestMove = legal_moves[0];
 
     for (const Move &move : legal_moves)
@@ -164,14 +189,14 @@ Move get_best_move(Pos &pos, int depth)
         //           << ", #moves=" << oppMoves.size()
         //           << ", inCheck=" << inCheck << std::endl;
 
-        int eval = -search(pos, depth - 1, -val, val);
+        int eval = -search(pos, depth - 1, -INF, INF);
         // std::cout << "Before undo: " << move_to_string(move) << std::endl;
         // pos.print_board();
         pos.undo_move();
         // std::cout << "After undo: " << move_to_string(move) << std::endl;
         // pos.print_board();
 
-        if (eval >= maxEval)
+        if (eval > maxEval)
         {
             maxEval = eval;
             bestMove = move;

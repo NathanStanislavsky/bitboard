@@ -13,10 +13,11 @@ int main()
 {
     init_leapers_attacks();
 
-    Pos pos("3r4/8/8/4k3/8/8/5K2/3r4 b - - 30 16");
+    Pos pos("8/8/8/8/8/5k2/7K/5q2 b - - 56 29");
     pos.print_board();
 
-    int depth = 8;
+    int depth = 3;
+    int INF = 2147483647;
 
     Timestamp start = get_current_ms();
 
@@ -28,9 +29,10 @@ int main()
 
     std::cout << "Best Move: " << best_move_str << std::endl;
 
-    // std::cout << search(pos, depth, -2147483647, 2147483647) << std::endl;
+    // std::cout << search(pos, depth, -INF, INF) << std::endl;
 
 
-    // perft(pos, 8, true);
+    // std::cout << perft(pos, 8, true) << std::endl;
+
     return 0;
 }
