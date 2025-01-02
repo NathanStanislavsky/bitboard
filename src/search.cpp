@@ -30,6 +30,9 @@ int quiescence_search(Pos &pos, int alpha, int beta)
 
     if (evaluation >= beta)
     {
+        // If evaluation is huge (like a mate score), return it exactly
+        if (evaluation >= CHECKMATE_SCORE - 100) // or some threshold
+            return evaluation;
         return beta;
     }
     alpha = max(alpha, evaluation);
@@ -98,7 +101,7 @@ void move_order(Pos &pos, std::vector<Move> &moves)
     }
 }
 
-int search(Pos &pos, int depth, int alpha, int beta)
+int search(Pos &pos, int depth, int alpha, int beta, int ply)
 {
     // std::cout << "Depth: " << depth << std::endl;
     if (depth == 0)
@@ -115,7 +118,7 @@ int search(Pos &pos, int depth, int alpha, int beta)
         if (pos.is_in_check(pos.turn))
         {
             // std::cout << "Checkmate" << std::endl;
-            return -CHECKMATE_SCORE;
+            return -(CHECKMATE_SCORE - ply);
         }
         else
         {
@@ -141,7 +144,7 @@ int search(Pos &pos, int depth, int alpha, int beta)
         //           << ", #moves=" << oppMoves.size()
         //           << ", inCheck=" << inCheck << std::endl;
 
-        int eval = -search(pos, depth - 1, -beta, -alpha);
+        int childEval = -search(pos, depth - 1, -beta, -alpha, ply + 1);
 
         // std::cout << "Eval: " << eval << std::endl;
 
@@ -151,12 +154,12 @@ int search(Pos &pos, int depth, int alpha, int beta)
         // std::cout << "After undo: " << move_to_string(move) << std::endl;
         // pos.print_board();
 
-        if (eval >= beta)
+        if (childEval >= beta)
         {
             // Move was too good for the opponent so we avoid this position
             return beta;
         }
-        alpha = max(alpha, eval);
+        alpha = max(alpha, childEval);
     }
     return alpha;
 }
@@ -189,7 +192,7 @@ Move get_best_move(Pos &pos, int depth)
         //           << ", #moves=" << oppMoves.size()
         //           << ", inCheck=" << inCheck << std::endl;
 
-        int eval = -search(pos, depth - 1, -INF, INF);
+        int eval = -search(pos, depth - 1, -INF, INF, 1);
         // std::cout << "Before undo: " << move_to_string(move) << std::endl;
         // pos.print_board();
         pos.undo_move();
