@@ -70,6 +70,6 @@ int eval(Pos &pos)
     int material_score_without_pawns = get_material_count_without_pawns(pos, side);
     float endgame_weight = endgame_phase_weight(material_score_without_pawns);
     int endgame_score = force_king_to_corner_endgame_eval(pos, endgame_weight);
-
+    
     return material_score + endgame_score;
 }

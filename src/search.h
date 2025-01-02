@@ -3,7 +3,7 @@
 #include "types.h"
 #include "pos.h"
 
-int search_all_captures(Pos &pos, int alpha, int beta);
+int quiescence_search(Pos &pos, int alpha, int beta);
 
 void move_order(Pos &pos, std::vector<Move> &moves);
 

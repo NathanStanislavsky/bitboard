@@ -81,7 +81,8 @@ std::map<Piece, int> piece_value = {
     {BISHOP, 300},
     {KNIGHT, 300},
     {ROOK, 500},
-    {QUEEN, 900}
+    {QUEEN, 900},
+    {KING, 100}
 };
 
 int get_piece_value(Piece piece)

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+
 #include "pos.h"
 #include "move_gen.h"
 #include "move.h"
@@ -12,7 +13,7 @@ int main()
 {
     init_leapers_attacks();
 
-    Pos pos("3r4/8/5k2/8/8/5K2/r7/8 b - - 12 7");
+    Pos pos("3r4/8/8/4k3/8/8/5K2/3r4 b - - 30 16");
     pos.print_board();
 
     int depth = 8;
@@ -27,5 +28,9 @@ int main()
 
     std::cout << "Best Move: " << best_move_str << std::endl;
 
+    // std::cout << search(pos, depth, -2147483647, 2147483647) << std::endl;
+
+
+    // perft(pos, 8, true);
     return 0;
 }
