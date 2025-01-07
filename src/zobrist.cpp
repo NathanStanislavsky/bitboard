@@ -25,3 +25,32 @@ void init_zobrist_keys()
 
     enpassant_table[NONE_SQUARE] = 0;
 }
+
+BB compute_zobrist_hash(Pos &pos)
+{
+    BB zobrist_key = 0;
+
+    for (int square = 0; square <= 63; square++)
+    {
+        Piece piece = pos.piece_on(Square(square));
+        if (piece != EMPTY)
+        {
+            Color color = pos.color_on(Square(square));
+            zobrist_key ^= piece_square_table[color][piece][square];
+        }
+    }
+
+    if (pos.enpassant_sq != NONE_SQUARE)
+    {
+        zobrist_key ^= enpassant_table[pos.enpassant_sq];
+    }
+
+    zobrist_key ^= castling_table[pos.get_castling_rights()];
+
+    if (pos.turn == WHITE)
+    {
+        zobrist_key ^= white_to_move;
+    }
+
+    return zobrist_key;
+}
