@@ -35,3 +35,7 @@ char specific_piece_to_char(Specific_Piece spiece);
 void print_bitboard(BB bb);
 
 void testMasks();
+
+inline BB rand64() {
+    return ((BB)rand() << 48) | ((BB)rand() << 32) | ((BB)rand() << 16) | (BB)rand();
+}
