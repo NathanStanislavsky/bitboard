@@ -1,11 +1,9 @@
-#include "pos.h"
 #include <string>
 #include <iostream>
-#include "types.h"
-#include "utilities.h"
-#include "move.h"
-#include "move_gen.h"
 #include <sstream>
+
+#include "pos.h"
+#include "move_gen.h"
 
 using namespace std;
 

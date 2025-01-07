@@ -1,37 +1,60 @@
+#include <iostream>
+
 #include "search.h"
-#include "types.h"
-#include "pos.h"
-
-#include <map>
-
-std::map<Piece, int> piece_value = {
-    {PAWN, 100},
-    {BISHOP, 300},
-    {KNIGHT, 300},
-    {ROOK, 500},
-    {QUEEN, 900}};
+#include "evaluation.h"
+#include "move_gen.h"
 
 int INF = 2147483647;
+int CHECKMATE_SCORE = 30000;
 
-int count_material(Pos &pos, Color side)
+std::vector<Move> generate_legal_captures(Pos &pos)
 {
-    int material = 0;
-    for (int i = 0; i < 6; i++)
+    std::vector<Move> legal_moves = generate_legal_moves(pos);
+    std::vector<Move> legal_captures;
+    legal_captures.reserve(legal_moves.size());
+
+    for (Move m : legal_moves)
     {
-        material += __builtin_popcountll(pos.pieces_bbs[i] & pos.colors_bbs[side]) * piece_value[Piece(i)];
+        if (is_capture(m))
+        {
+            legal_captures.push_back(m);
+        }
     }
-    return material;
+
+    return legal_captures;
 }
 
-int eval(Pos &pos)
+int quiescence_search(Pos &pos, int alpha, int beta)
 {
-    Color side = pos.turn;
-    Color enemy = Color(!side);
+    int evaluation = eval(pos);
 
-    int current_player_material = count_material(pos, side);
-    int enemy_player_material = count_material(pos, enemy);
+    if (evaluation >= beta)
+    {
+        // If evaluation is huge (like a mate score), return it exactly
+        // if (evaluation >= CHECKMATE_SCORE - 100) // or some threshold
+        //     return evaluation;
+        return beta;
+    }
+    alpha = max(alpha, evaluation);
 
-    return current_player_material - enemy_player_material;
+    std::vector<Move> capture_moves = generate_legal_captures(pos);
+
+    move_order(pos, capture_moves);
+
+    for (Move m : capture_moves)
+    {
+        pos.do_move(m);
+        int evaluation = -quiescence_search(pos, -beta, -alpha);
+        pos.undo_move();
+
+        if (evaluation >= beta)
+        {
+            return beta;
+        }
+        alpha = max(alpha, evaluation);
+    }
+
+    return alpha;
 }
 
 void move_order(Pos &pos, std::vector<Move> &moves)
@@ -48,19 +71,19 @@ void move_order(Pos &pos, std::vector<Move> &moves)
         // Prioritize capturing pieces of higher values with lower value pieces
         if (is_capture(move))
         {
-            move_score_guess = 10 * piece_value[piece_captured] - piece_value[piece_moved];
+            move_score_guess = 10 * get_piece_value(piece_captured) - get_piece_value(piece_moved);
         }
 
         // Prioritize promotions
         if (is_promotion(move))
         {
-            move_score_guess += piece_value[promotion_piece(move)];
+            move_score_guess += get_piece_value(promotion_piece(move));
         }
 
         // Prioritize not moving pieces to squares attacked by pawns
         if (pos.is_attacked_by_pawn(to_square(move), Color(!pos.turn)))
         {
-            move_score_guess -= piece_value[piece_moved];
+            move_score_guess -= get_piece_value(piece_moved);
         }
 
         scored_moves.emplace_back(move_score_guess, move);
@@ -78,11 +101,13 @@ void move_order(Pos &pos, std::vector<Move> &moves)
     }
 }
 
-int search(Pos &pos, int depth, int alpha, int beta)
+int search(Pos &pos, int depth, int alpha, int beta, int ply)
 {
+    // std::cout << "Depth: " << depth << std::endl;
     if (depth == 0)
     {
-        return eval(pos);
+        // keep going until no captures are left (quiescence search)
+        return quiescence_search(pos, alpha, beta);
     }
 
     vector<Move> legal_moves = generate_legal_moves(pos);
@@ -92,7 +117,8 @@ int search(Pos &pos, int depth, int alpha, int beta)
     {
         if (pos.is_in_check(pos.turn))
         {
-            return -INF;
+            // std::cout << "Checkmate" << std::endl;
+            return -(CHECKMATE_SCORE - ply);
         }
         else
         {
@@ -104,16 +130,36 @@ int search(Pos &pos, int depth, int alpha, int beta)
 
     for (Move move : legal_moves)
     {
+        // std::cout << "Before: " << move_to_string(move) << std::endl;
+        // pos.print_board();
         pos.do_move(move);
-        int eval = -search(pos, depth - 1, -beta, -alpha);
-        pos.undo_move();
+        // std::cout << "After: " << move_to_string(move) << std::endl;
+        // pos.print_board();
 
-        if (eval >= beta)
+        // Color sideToMove = pos.turn; // Should be White
+        // auto oppMoves = generate_legal_moves(pos);
+        // bool inCheck = pos.is_in_check(sideToMove);
+
+        // std::cout << "Move:" << move_to_string(move) << sideToMove
+        //           << ", #moves=" << oppMoves.size()
+        //           << ", inCheck=" << inCheck << std::endl;
+
+        int childEval = -search(pos, depth - 1, -beta, -alpha, ply + 1);
+
+        // std::cout << "Eval: " << eval << std::endl;
+
+        // std::cout << "Before undo: " << move_to_string(move) << std::endl;
+        // pos.print_board();
+        pos.undo_move();
+        // std::cout << "After undo: " << move_to_string(move) << std::endl;
+        // pos.print_board();
+
+        if (childEval >= beta)
         {
             // Move was too good for the opponent so we avoid this position
             return beta;
         }
-        alpha = max(alpha, eval);
+        alpha = max(alpha, childEval);
     }
     return alpha;
 }
@@ -124,14 +170,7 @@ Move get_best_move(Pos &pos, int depth)
 
     if (legal_moves.size() == 0)
     {
-        if (pos.is_in_check(pos.turn))
-        {
-            return -INF;
-        }
-        else
-        {
-            return 0;
-        }
+        return Move();
     }
 
     int maxEval = -INF;
@@ -139,16 +178,32 @@ Move get_best_move(Pos &pos, int depth)
 
     for (const Move &move : legal_moves)
     {
+        // std::cout << "Before: " << move_to_string(move) << std::endl;
+        // pos.print_board();
         pos.do_move(move);
+        // std::cout << "After: " << move_to_string(move) << std::endl;
+        // pos.print_board();
 
-        int eval = -search(pos, depth - 1, -INF, INF);
+        // Color sideToMove = pos.turn; // Should be White
+        // auto oppMoves = generate_legal_moves(pos);
+        // bool inCheck = pos.is_in_check(sideToMove);
 
+        // std::cout << "Move:" << move_to_string(move) << sideToMove
+        //           << ", #moves=" << oppMoves.size()
+        //           << ", inCheck=" << inCheck << std::endl;
+
+        int eval = -search(pos, depth - 1, -INF, INF, 1);
+        // std::cout << "Before undo: " << move_to_string(move) << std::endl;
+        // pos.print_board();
         pos.undo_move();
+        // std::cout << "After undo: " << move_to_string(move) << std::endl;
+        // pos.print_board();
 
         if (eval > maxEval)
         {
             maxEval = eval;
             bestMove = move;
+            std::cout << "Best move: " << move_to_string(move) << " with eval: " << eval << std::endl;
         }
     }
 

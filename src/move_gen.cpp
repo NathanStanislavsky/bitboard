@@ -1,8 +1,9 @@
-#include "move_gen.h"
-#include "types.h"
 #include <vector>
 #include <iostream>
 #include <cassert>
+
+#include "move_gen.h"
+#include "types.h"
 
 using namespace std;
 

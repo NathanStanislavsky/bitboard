@@ -1,7 +1,8 @@
-#include "timer.h"
 #include <iostream>
 #include <chrono>
 #include <string>
+
+#include "timer.h"
 
 Timestamp get_current_ms()
 {

@@ -1,10 +1,14 @@
 #pragma once
-#include "types.h"
+
 #include <string>
-#include <map>
+
+#include "types.h"
 #include "pos.h"
 
+
 using namespace std;
+
+int get_piece_value(Piece piece);
 
 Piece char_to_piece(char c);
 
