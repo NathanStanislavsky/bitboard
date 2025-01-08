@@ -18,20 +18,18 @@ int main()
     Pos pos("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     pos.print_board();
 
-    std::cout << compute_zobrist_hash(pos) << std::endl;
+    int depth = 9;
+    int INF = 2147483647;
 
-    // int depth = 8;
-    // int INF = 2147483647;
+    Timestamp start = get_current_ms();
 
-    // Timestamp start = get_current_ms();
+    Move best_move = get_best_move(pos, depth);
 
-    // Move best_move = get_best_move(pos, depth);
+    print_time_diff(start);
 
-    // print_time_diff(start);
+    std::string best_move_str = move_to_string(best_move);
 
-    // std::string best_move_str = move_to_string(best_move);
-
-    // std::cout << "Best Move: " << best_move_str << std::endl;
+    std::cout << "Best Move: " << best_move_str << std::endl;
 
     // std::cout << search(pos, depth, -INF, INF) << std::endl;
 

@@ -103,7 +103,6 @@ void move_order(Pos &pos, std::vector<Move> &moves)
 
 int search(Pos &pos, int depth, int alpha, int beta, int ply)
 {
-    // std::cout << "Depth: " << depth << std::endl;
     if (depth == 0)
     {
         // keep going until no captures are left (quiescence search)
@@ -117,7 +116,6 @@ int search(Pos &pos, int depth, int alpha, int beta, int ply)
     {
         if (pos.is_in_check(pos.turn))
         {
-            // std::cout << "Checkmate" << std::endl;
             return -(CHECKMATE_SCORE - ply);
         }
         else
@@ -130,29 +128,9 @@ int search(Pos &pos, int depth, int alpha, int beta, int ply)
 
     for (Move move : legal_moves)
     {
-        // std::cout << "Before: " << move_to_string(move) << std::endl;
-        // pos.print_board();
         pos.do_move(move);
-        // std::cout << "After: " << move_to_string(move) << std::endl;
-        // pos.print_board();
-
-        // Color sideToMove = pos.turn; // Should be White
-        // auto oppMoves = generate_legal_moves(pos);
-        // bool inCheck = pos.is_in_check(sideToMove);
-
-        // std::cout << "Move:" << move_to_string(move) << sideToMove
-        //           << ", #moves=" << oppMoves.size()
-        //           << ", inCheck=" << inCheck << std::endl;
-
         int childEval = -search(pos, depth - 1, -beta, -alpha, ply + 1);
-
-        // std::cout << "Eval: " << eval << std::endl;
-
-        // std::cout << "Before undo: " << move_to_string(move) << std::endl;
-        // pos.print_board();
         pos.undo_move();
-        // std::cout << "After undo: " << move_to_string(move) << std::endl;
-        // pos.print_board();
 
         if (childEval >= beta)
         {
@@ -178,26 +156,9 @@ Move get_best_move(Pos &pos, int depth)
 
     for (const Move &move : legal_moves)
     {
-        // std::cout << "Before: " << move_to_string(move) << std::endl;
-        // pos.print_board();
-        pos.do_move(move);
-        // std::cout << "After: " << move_to_string(move) << std::endl;
-        // pos.print_board();
-
-        // Color sideToMove = pos.turn; // Should be White
-        // auto oppMoves = generate_legal_moves(pos);
-        // bool inCheck = pos.is_in_check(sideToMove);
-
-        // std::cout << "Move:" << move_to_string(move) << sideToMove
-        //           << ", #moves=" << oppMoves.size()
-        //           << ", inCheck=" << inCheck << std::endl;
-
+        pos.do_move(move);;
         int eval = -search(pos, depth - 1, -INF, INF, 1);
-        // std::cout << "Before undo: " << move_to_string(move) << std::endl;
-        // pos.print_board();
         pos.undo_move();
-        // std::cout << "After undo: " << move_to_string(move) << std::endl;
-        // pos.print_board();
 
         if (eval > maxEval)
         {
