@@ -8,26 +8,30 @@
 #include "test.h"
 #include "timer.h"
 #include "search.h"
+#include "zobrist.h"
 
 int main()
 {
     init_leapers_attacks();
+    init_zobrist_keys();
 
-    Pos pos("2r5/4r3/8/8/8/2k5/8/2K5 b - - 77 40");
+    Pos pos("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     pos.print_board();
 
-    int depth = 8;
-    int INF = 2147483647;
+    std::cout << compute_zobrist_hash(pos) << std::endl;
 
-    Timestamp start = get_current_ms();
+    // int depth = 8;
+    // int INF = 2147483647;
 
-    Move best_move = get_best_move(pos, depth);
+    // Timestamp start = get_current_ms();
 
-    print_time_diff(start);
+    // Move best_move = get_best_move(pos, depth);
 
-    std::string best_move_str = move_to_string(best_move);
+    // print_time_diff(start);
 
-    std::cout << "Best Move: " << best_move_str << std::endl;
+    // std::string best_move_str = move_to_string(best_move);
+
+    // std::cout << "Best Move: " << best_move_str << std::endl;
 
     // std::cout << search(pos, depth, -INF, INF) << std::endl;
 
