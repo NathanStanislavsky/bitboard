@@ -101,72 +101,63 @@ void move_order(Pos &pos, std::vector<Move> &moves)
     }
 }
 
-int search(Pos &pos, int depth, int alpha, int beta, int ply)
+std::pair<int, Move> search(Pos &pos, int depth, int alpha, int beta, int ply)
 {
+    // 1. Base case: if we have reached depth 0, drop into quiescence search.
     if (depth == 0)
     {
-        // keep going until no captures are left (quiescence search)
-        return quiescence_search(pos, alpha, beta);
+        int score = quiescence_search(pos, alpha, beta);
+        return {score, Move()}; // No particular "best move" in quiescence
     }
 
-    vector<Move> legal_moves = generate_legal_moves(pos);
+    // 2. Generate all legal moves
+    std::vector<Move> legal_moves = generate_legal_moves(pos);
 
-    // checkmate/stalemate
-    if (legal_moves.size() == 0)
+    // 3. Check for checkmate/stalemate
+    if (legal_moves.empty())
     {
         if (pos.is_in_check(pos.turn))
         {
-            return -(CHECKMATE_SCORE - ply);
+            // Negative mate score factoring in distance to mate
+            return {-(CHECKMATE_SCORE - ply), Move()};
         }
         else
         {
-            return 0;
+            // Stalemate
+            return {0, Move()};
         }
     }
 
+    // 4. Order the moves for better alpha-beta performance
     move_order(pos, legal_moves);
 
-    for (Move move : legal_moves)
-    {
-        pos.do_move(move);
-        int childEval = -search(pos, depth - 1, -beta, -alpha, ply + 1);
-        pos.undo_move();
+    int bestEval = -INF;
+    Move bestMove;
 
-        if (childEval >= beta)
-        {
-            // Move was too good for the opponent so we avoid this position
-            return beta;
-        }
-        alpha = max(alpha, childEval);
-    }
-    return alpha;
-}
-
-Move get_best_move(Pos &pos, int depth)
-{
-    std::vector<Move> legal_moves = generate_legal_moves(pos);
-
-    if (legal_moves.size() == 0)
-    {
-        return Move();
-    }
-
-    int maxEval = -INF;
-    Move bestMove = legal_moves[0];
-
+    // 5. Negamax framework
     for (const Move &move : legal_moves)
     {
-        pos.do_move(move);;
-        int eval = -search(pos, depth - 1, -INF, INF, 1);
+        pos.do_move(move);
+        // Recursively search the opponent's best response
+        auto [childEval, childBestMove] = search(pos, depth - 1, -beta, -alpha, ply + 1);
+
+        // Negamax: from our perspective, the opponent's best value is the negative of ours
+        childEval = -childEval;
         pos.undo_move();
 
-        if (eval > maxEval)
+        // Update alpha/bestEval/bestMove if we found something better
+        if (childEval > bestEval)
         {
-            maxEval = eval;
+            bestEval = childEval;
             bestMove = move;
-            std::cout << "Best move: " << move_to_string(move) << " with eval: " << eval << std::endl;
         }
+        alpha = std::max(alpha, bestEval);
+
+        // Alpha-Beta cutoff
+        if (alpha >= beta)
+            break;
     }
 
-    return bestMove;
+    // 6. Return the best score found and the corresponding move
+    return {bestEval, bestMove};
 }

@@ -15,7 +15,7 @@ int main()
     init_leapers_attacks();
     init_zobrist_keys();
 
-    Pos pos("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    Pos pos("3r4/3r4/4k3/8/8/4K3/8/8 b - - 79 41");
     pos.print_board();
 
     int depth = 9;
@@ -23,18 +23,12 @@ int main()
 
     Timestamp start = get_current_ms();
 
-    Move best_move = get_best_move(pos, depth);
+    auto [score, bestMove] = search(pos, depth, -INF, INF, 0);
 
     print_time_diff(start);
 
-    std::string best_move_str = move_to_string(best_move);
-
-    std::cout << "Best Move: " << best_move_str << std::endl;
-
-    // std::cout << search(pos, depth, -INF, INF) << std::endl;
-
-
-    // std::cout << perft(pos, 8, true) << std::endl;
+    std::cout << "Best move: " << move_to_string(bestMove)
+              << " with eval: " << score << std::endl;
 
     return 0;
 }
