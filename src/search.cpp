@@ -3,6 +3,7 @@
 #include "search.h"
 #include "evaluation.h"
 #include "move_gen.h"
+#include "transposition.h"
 
 int INF = 2147483647;
 int CHECKMATE_SCORE = 30000;
@@ -101,19 +102,28 @@ void move_order(Pos &pos, std::vector<Move> &moves)
     }
 }
 
-std::pair<int, Move> search(Pos &pos, int depth, int alpha, int beta, int ply)
+std::pair<int, Move> search(Pos &pos, int depth, int alpha, int beta, int ply, TranspositionTable &tt)
 {
-    // 1. Base case: if we have reached depth 0, drop into quiescence search.
+    // If we have reached depth 0, drop into quiescence search.
     if (depth == 0)
     {
         int score = quiescence_search(pos, alpha, beta);
         return {score, Move()}; // No particular "best move" in quiescence
     }
 
-    // 2. Generate all legal moves
+    uint64_t key = compute_zobrist_hash(pos);
+
+    int ttScore;
+    Move ttBestMove;
+    if (tt.probe(key, depth, alpha, beta, ttScore, ttBestMove))
+    {
+        return {ttScore, ttBestMove};
+    }
+
+    // Generate all legal moves
     std::vector<Move> legal_moves = generate_legal_moves(pos);
 
-    // 3. Check for checkmate/stalemate
+    // Check for checkmate/stalemate
     if (legal_moves.empty())
     {
         if (pos.is_in_check(pos.turn))
@@ -128,20 +138,17 @@ std::pair<int, Move> search(Pos &pos, int depth, int alpha, int beta, int ply)
         }
     }
 
-    // 4. Order the moves for better alpha-beta performance
+    // Order the moves for better alpha-beta performance
     move_order(pos, legal_moves);
 
+    int originalAlpha = alpha;
     int bestEval = -INF;
     Move bestMove;
 
-    // 5. Negamax framework
     for (const Move &move : legal_moves)
     {
         pos.do_move(move);
-        // Recursively search the opponent's best response
-        auto [childEval, childBestMove] = search(pos, depth - 1, -beta, -alpha, ply + 1);
-
-        // Negamax: from our perspective, the opponent's best value is the negative of ours
+        auto [childEval, childBestMove] = search(pos, depth - 1, -beta, -alpha, ply + 1, tt);
         childEval = -childEval;
         pos.undo_move();
 
@@ -158,6 +165,22 @@ std::pair<int, Move> search(Pos &pos, int depth, int alpha, int beta, int ply)
             break;
     }
 
-    // 6. Return the best score found and the corresponding move
+    TTFlag flag = TT_EXACT; // By default, assume it's an exact value
+
+    // If the score is too low (i.e., we never raised alpha above alphaOriginal)
+    // then it's an upper bound on the actual score
+    if (bestEval <= originalAlpha)
+    {
+        flag = TT_UPPERBOUND;
+    }
+    // If the score is too high (alpha >= beta), it's a lower bound
+    else if (bestEval >= beta)
+    {
+        flag = TT_LOWERBOUND;
+    }
+
+    tt.store(key, depth, bestEval, flag, bestMove);
+
+    // Return the best score found and the corresponding move
     return {bestEval, bestMove};
 }

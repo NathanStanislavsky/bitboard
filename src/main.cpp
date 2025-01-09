@@ -9,21 +9,23 @@
 #include "timer.h"
 #include "search.h"
 #include "zobrist.h"
+#include "transposition.h"
 
 int main()
 {
     init_leapers_attacks();
     init_zobrist_keys();
+    TranspositionTable tt(1 << 24);
 
-    Pos pos("3r4/3r4/4k3/8/8/4K3/8/8 b - - 79 41");
+    Pos pos("7r/3r4/4k3/8/5K2/8/8/8 b - - 81 42");
     pos.print_board();
 
-    int depth = 9;
+    int depth = 12;
     int INF = 2147483647;
 
     Timestamp start = get_current_ms();
 
-    auto [score, bestMove] = search(pos, depth, -INF, INF, 0);
+    auto [score, bestMove] = search(pos, depth, -INF, INF, 0, tt);
 
     print_time_diff(start);
 
