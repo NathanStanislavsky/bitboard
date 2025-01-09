@@ -482,3 +482,17 @@ bool Pos::is_attacked_by_pawn(Square sq, Color enemy_side) const
     }
     return false;
 }
+
+int Pos::get_castling_rights() const
+{
+    int rights = 0;
+    if (cr.wkc)
+        rights |= 1 << 0;
+    if (cr.wqc)
+        rights |= 1 << 1;
+    if (cr.bkc)
+        rights |= 1 << 2;
+    if (cr.bqc)
+        rights |= 1 << 3;
+    return rights;
+}

@@ -50,4 +50,6 @@ public:
     bool is_attacked_by_pawn(Square sq, Color enemy_side) const;
 
     bool is_in_check(Color side) const;
+
+    int get_castling_rights() const;
 };

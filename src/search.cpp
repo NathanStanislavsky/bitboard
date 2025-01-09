@@ -3,6 +3,7 @@
 #include "search.h"
 #include "evaluation.h"
 #include "move_gen.h"
+#include "transposition.h"
 
 int INF = 2147483647;
 int CHECKMATE_SCORE = 30000;
@@ -101,111 +102,85 @@ void move_order(Pos &pos, std::vector<Move> &moves)
     }
 }
 
-int search(Pos &pos, int depth, int alpha, int beta, int ply)
+std::pair<int, Move> search(Pos &pos, int depth, int alpha, int beta, int ply, TranspositionTable &tt)
 {
-    // std::cout << "Depth: " << depth << std::endl;
+    // If we have reached depth 0, drop into quiescence search.
     if (depth == 0)
     {
-        // keep going until no captures are left (quiescence search)
-        return quiescence_search(pos, alpha, beta);
+        int score = quiescence_search(pos, alpha, beta);
+        return {score, Move()}; // No particular "best move" in quiescence
     }
 
-    vector<Move> legal_moves = generate_legal_moves(pos);
+    uint64_t key = compute_zobrist_hash(pos);
 
-    // checkmate/stalemate
-    if (legal_moves.size() == 0)
+    int ttScore;
+    Move ttBestMove;
+    if (tt.probe(key, depth, alpha, beta, ttScore, ttBestMove))
+    {
+        return {ttScore, ttBestMove};
+    }
+
+    // Generate all legal moves
+    std::vector<Move> legal_moves = generate_legal_moves(pos);
+
+    // Check for checkmate/stalemate
+    if (legal_moves.empty())
     {
         if (pos.is_in_check(pos.turn))
         {
-            // std::cout << "Checkmate" << std::endl;
-            return -(CHECKMATE_SCORE - ply);
+            // Negative mate score factoring in distance to mate
+            return {-(CHECKMATE_SCORE - ply), Move()};
         }
         else
         {
-            return 0;
+            // Stalemate
+            return {0, Move()};
         }
     }
 
+    // Order the moves for better alpha-beta performance
     move_order(pos, legal_moves);
 
-    for (Move move : legal_moves)
-    {
-        // std::cout << "Before: " << move_to_string(move) << std::endl;
-        // pos.print_board();
-        pos.do_move(move);
-        // std::cout << "After: " << move_to_string(move) << std::endl;
-        // pos.print_board();
-
-        // Color sideToMove = pos.turn; // Should be White
-        // auto oppMoves = generate_legal_moves(pos);
-        // bool inCheck = pos.is_in_check(sideToMove);
-
-        // std::cout << "Move:" << move_to_string(move) << sideToMove
-        //           << ", #moves=" << oppMoves.size()
-        //           << ", inCheck=" << inCheck << std::endl;
-
-        int childEval = -search(pos, depth - 1, -beta, -alpha, ply + 1);
-
-        // std::cout << "Eval: " << eval << std::endl;
-
-        // std::cout << "Before undo: " << move_to_string(move) << std::endl;
-        // pos.print_board();
-        pos.undo_move();
-        // std::cout << "After undo: " << move_to_string(move) << std::endl;
-        // pos.print_board();
-
-        if (childEval >= beta)
-        {
-            // Move was too good for the opponent so we avoid this position
-            return beta;
-        }
-        alpha = max(alpha, childEval);
-    }
-    return alpha;
-}
-
-Move get_best_move(Pos &pos, int depth)
-{
-    std::vector<Move> legal_moves = generate_legal_moves(pos);
-
-    if (legal_moves.size() == 0)
-    {
-        return Move();
-    }
-
-    int maxEval = -INF;
-    Move bestMove = legal_moves[0];
+    int originalAlpha = alpha;
+    int bestEval = -INF;
+    Move bestMove;
 
     for (const Move &move : legal_moves)
     {
-        // std::cout << "Before: " << move_to_string(move) << std::endl;
-        // pos.print_board();
         pos.do_move(move);
-        // std::cout << "After: " << move_to_string(move) << std::endl;
-        // pos.print_board();
-
-        // Color sideToMove = pos.turn; // Should be White
-        // auto oppMoves = generate_legal_moves(pos);
-        // bool inCheck = pos.is_in_check(sideToMove);
-
-        // std::cout << "Move:" << move_to_string(move) << sideToMove
-        //           << ", #moves=" << oppMoves.size()
-        //           << ", inCheck=" << inCheck << std::endl;
-
-        int eval = -search(pos, depth - 1, -INF, INF, 1);
-        // std::cout << "Before undo: " << move_to_string(move) << std::endl;
-        // pos.print_board();
+        auto [childEval, childBestMove] = search(pos, depth - 1, -beta, -alpha, ply + 1, tt);
+        childEval = -childEval;
         pos.undo_move();
-        // std::cout << "After undo: " << move_to_string(move) << std::endl;
-        // pos.print_board();
 
-        if (eval > maxEval)
+        // Update alpha/bestEval/bestMove if we found something better
+        if (childEval > bestEval)
         {
-            maxEval = eval;
+            bestEval = childEval;
             bestMove = move;
-            std::cout << "Best move: " << move_to_string(move) << " with eval: " << eval << std::endl;
         }
+        alpha = std::max(alpha, bestEval);
+
+        // Alpha-Beta cutoff
+        if (alpha >= beta)
+            break;
     }
 
-    return bestMove;
+    TTFlag flag = TT_EXACT; // By default, assume it's an exact value
+
+    // If the score is too low (i.e., we never raised alpha above alphaOriginal)
+    // then it's an upper bound on the actual score
+    if (bestEval <= originalAlpha)
+    {
+        flag = TT_UPPERBOUND;
+    }
+    // If the score is too high (alpha >= beta), it's a lower bound
+    else if (bestEval >= beta)
+    {
+        flag = TT_LOWERBOUND;
+    }
+
+    tt.store(key, depth, bestEval, flag, bestMove);
+
+    // Return the best score found and the corresponding move
+    return {bestEval, bestMove};
 }
