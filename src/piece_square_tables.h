@@ -2,13 +2,13 @@
 
 namespace PieceSquareTable
 {
-    extern const int pawns[64];
-    extern const int knights[64];
-    extern const int bishops[64];
-    extern const int rooks[64];
-    extern const int queens[64];
-    extern const int kingMiddle[64];
-    extern const int kingEnd[64];
+    extern const int pawn_eval_table[64];
+    extern const int knights_eval_table[64];
+    extern const int bishops_eval_table[64];
+    extern const int rooks_eval_table[64];
+    extern const int queens_eval_table[64];
+    extern const int king_middle_eval_table[64];
+    extern const int king_end_eval_table[64];
 
     int readValue(const int *table, int square, bool isBlack);
 
