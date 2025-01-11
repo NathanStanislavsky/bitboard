@@ -1,6 +1,7 @@
 #include <algorithm>
 
 #include "evaluation.h"
+#include "piece_square_tables.h"
 
 const float endgame_material_start = 500 * 2 + 300 + 300; // rook value, knight value, bishop value
 
@@ -58,6 +59,62 @@ int force_king_to_corner_endgame_eval(Pos &pos, float endgame_weight)
     return (int)(evaluation * 10 * endgame_weight);
 }
 
+int piece_square_table_score(Pos &pos, float endgame_weight)
+{
+    int score = 0;
+
+    for (int color = 0; color < 2; color++)
+    {
+        for (int piece = 0; piece < 6; piece++)
+        {
+            uint64_t pieces = pos.pieces_bbs[piece] & pos.colors_bbs[color];
+            while (pieces)
+            {
+                int square = __builtin_ctzll(pieces);
+                pieces &= (pieces - 1);
+
+                int value = 0;
+                switch (Piece(piece))
+                {
+                case PAWN:
+                    value = PieceSquareTable::readValue(PieceSquareTable::pawns_eval_table, square, color);
+                    break;
+                case KNIGHT:
+                    value = PieceSquareTable::readValue(PieceSquareTable::knights_eval_table, square, color);
+                    break;
+                case BISHOP:
+                    value = PieceSquareTable::readValue(PieceSquareTable::bishops_eval_table, square, color);
+                    break;
+                case ROOK:
+                    value = PieceSquareTable::readValue(PieceSquareTable::rooks_eval_table, square, color);
+                    break;
+                case QUEEN:
+                    value = PieceSquareTable::readValue(PieceSquareTable::queens_eval_table, square, color);
+                    break;
+                case KING:
+                {
+                    int mg_val = PieceSquareTable::readValue(PieceSquareTable::king_middle_eval_table, square, color);
+                    int eg_val = PieceSquareTable::readValue(PieceSquareTable::king_end_eval_table, square, color);
+
+                    float blended = (1.0f - endgame_weight) * mg_val + (endgame_weight) * eg_val;
+
+                    value = static_cast<int>(blended);
+
+                    break;
+                }
+                default:
+                    value = 0;
+                    break;
+                }
+
+                score += value;
+            }
+        }
+    }
+
+    return score;
+}
+
 int eval(Pos &pos)
 {
     Color side = pos.turn;
@@ -70,6 +127,8 @@ int eval(Pos &pos)
     int material_score_without_pawns = get_material_count_without_pawns(pos, side);
     float endgame_weight = endgame_phase_weight(material_score_without_pawns);
     int endgame_score = force_king_to_corner_endgame_eval(pos, endgame_weight);
-    
-    return material_score + endgame_score;
+
+    int pst_score = piece_square_table_score(pos, endgame_weight);
+
+    return material_score + endgame_score + pst_score;
 }

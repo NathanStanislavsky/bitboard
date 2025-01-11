@@ -17,10 +17,10 @@ int main()
     init_zobrist_keys();
     TranspositionTable tt(1 << 24);
 
-    Pos pos("7r/3r4/4k3/8/5K2/8/8/8 b - - 81 42");
+    Pos pos("r2qkb1r/pp1n1ppp/8/3Pn3/QP6/P1N1PBP1/7P/R1B2K1R w kq - 3 19");
     pos.print_board();
 
-    int depth = 12;
+    int depth = 8;
     int INF = 2147483647;
 
     Timestamp start = get_current_ms();
